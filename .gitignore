@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+backups/
+server/directus/backups/
+*.sql
+*.sql.gz
+*.tar.gz
+node_modules/
