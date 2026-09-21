@@ -1,6 +1,6 @@
 # Directus auf dem IONOS VPS
 
-Zielsystem: Ubuntu 26.04 mit Docker, 4 vCores, 8 GB RAM und 240 GB NVMe. Derselbe VPS stellt Directus unter `admin.himmelsteil.de` bereit und liefert die statische Website unter `himmelsteil.de` aus. GitHub ist Versionsverwaltung und Build-Prüfung, kein Hostingziel.
+Zielsystem: Ubuntu 26.04 mit Docker, 4 vCores, 8 GB RAM und 240 GB NVMe. Derselbe VPS stellt Directus unter `admin.himmelsteil.de` bereit. Die Website wird zunächst geschützt unter `preview.himmelsteil.de` ausgeliefert; `himmelsteil.de` wird erst nach der Freigabe aktiviert. GitHub ist Versionsverwaltung und Build-Prüfung, kein Hostingziel.
 
 ## Vor dem Start
 
@@ -35,10 +35,10 @@ sudo chmod 0750 /opt/himmelsteil-cms
 sudo install -d -m 0755 -o root -g root /opt/himmelsteil-site
 cd /opt/himmelsteil-cms
 sudo bash setup-env.sh
-sudo docker compose config --quiet
 ```
 
 Das Skript fragt nur nach der Administrator-E-Mail, generiert drei unterschiedliche Zufallswerte und zeigt das anfängliche Administrator-Passwort einmalig an. Dieses sofort im Passwortmanager sichern und niemals in Chat oder Screenshots teilen.
+Vor `docker compose config` zusätzlich einen eigenen Preview-Passworthash gemäß Abschnitt "Geschützte Vorschau" in `.env` eintragen.
 
 Konfiguration prüfen und Container starten (als `timo` mit `sudo`, da der Benutzer nicht in der Docker-Gruppe ist):
 
@@ -88,23 +88,70 @@ sudo docker compose exec directus node /tmp/setup-build-access.mjs
 ```
 
 Das Skript fragt den aktuellen Admin-Login verdeckt ab. Es erstellt eine Rolle, eine Policy mit Lesezugriff auf veröffentlichte `gallery_items`, `packages` und `posts` sowie auf Dateien im Ordner `Website`, und einen technischen Benutzer `website-build@himmelsteil.de`. Der statische Token wird nicht ausgegeben. Lese- und Schreibzugriff werden mit diesem Benutzer getestet.
-Wenn ein bereits vorhandener Build-Token beim Test `401` ergibt, setzt das Skript ihn einmalig neu. Ein zuvor gespeichertes GitHub-Secret muss danach ebenfalls aktualisiert werden.
+Wenn ein bereits vorhandener Build-Token beim Test `401` ergibt, setzt das Skript ihn einmalig neu. Ein zuvor in einer Build-Umgebung gespeicherter Token muss danach ebenfalls aktualisiert werden.
 
 7. Den Token später im technischen Benutzer im Directus-Adminbereich aufrufen und nur in der geschützten Build-Umgebung als `DIRECTUS_TOKEN` speichern; `DIRECTUS_URL` ist `https://admin.himmelsteil.de`. Niemals einen Admin-Token für den Website-Build verwenden oder einen Token in Chat, Screenshots oder Git speichern.
 
-## Statische Website bereitstellen
+## Geschützte Vorschau
 
-Die Compose-Datei mountet `/opt/himmelsteil-site` schreibgeschützt nach `/srv/site` im Caddy-Container. Vor `docker compose up -d` muss das Host-Verzeichnis existieren:
+Die Compose-Datei mountet `/opt/himmelsteil-site` schreibgeschützt nach `/srv/site` im Caddy-Container. `Caddyfile` bedient Directus und die passwortgeschützte Vorschau. Die getrennte `Caddyfile.production` mit der Hauptdomain wird nur gemountet, **nicht** importiert und ist daher noch nicht aktiv.
+
+1. Bei IONOS einen **A-Record `preview`** für `preview.himmelsteil.de` auf `212.227.161.13` setzen. `@`, `www` und sämtliche Mail-Records unverändert lassen. Die vorhandenen Ports 80/443 reichen aus.
+2. Auf dem VPS einen langen, einzigartigen Preview-Passwortwert wählen und mit Caddy interaktiv hashen. Der Befehl fragt das Passwort ohne Echo ab; es erscheint nicht als Kommandozeilenargument:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo docker compose exec caddy caddy hash-password --algorithm argon2id
+```
+
+Den ausgegebenen Hash in `/opt/himmelsteil-cms/.env` als `PREVIEW_PASSWORD_HASH='<ausgegebener Hash>'` ergänzen. Die **einfachen Anführungszeichen** sind wichtig, weil Argon2id-Hashes Dollarzeichen enthalten. Die Datei bleibt nur für `root` lesbar. Das Klartextpasswort nur im Passwortmanager speichern, nicht in Git, Chat oder der Shell-History. Docker Compose gibt aufgelöste Werte mit `docker compose config` aus; daher ausschließlich `config --quiet` nutzen.
+
+3. Das statische Verzeichnis auf dem VPS anlegen und das lokal gebaute `dist/` übertragen:
 
 ```bash
 sudo install -d -m 0755 -o root -g root /opt/himmelsteil-site
 ```
 
-Zunächst lokal ohne `DIRECTUS_URL`/`DIRECTUS_TOKEN` mit `npm run build` bauen. Das erzeugte `dist/` ist das vollständige statische Artefakt. Es kann über SSH in ein temporäres Verzeichnis im Home-Verzeichnis von `timo` übertragen werden. Anschließend auf dem VPS nach Prüfung des Quellpfads mit `sudo rsync -a --delete /home/timo/site-upload/ /opt/himmelsteil-site/` veröffentlichen. Das Zielverzeichnis ist ausschließlich für diese Website vorgesehen; `--delete` entfernt dort alte Blogseiten. Keine `.env`, Tokens, Datenbankdateien oder Backups in `dist/` legen. Falls `rsync` fehlt, zunächst `sudo apt install rsync` ausführen.
+Auf dem Windows-Rechner im Frontend-Ordner `npm run build` ohne `DIRECTUS_URL`/`DIRECTUS_TOKEN` ausführen. Anschließend `dist/` per `scp` in ein **neues** Verzeichnis unter `/home/timo/` kopieren, zum Beispiel `site-preview-upload-1`:
 
-Die aktualisierte `Caddyfile` und `compose.yaml` erst zum geplanten Go-live nach `/opt/himmelsteil-cms/` übertragen. Dort zunächst `sudo docker compose config --quiet` prüfen, dann `sudo docker compose up -d` ausführen und mit `sudo docker compose exec -T caddy caddy validate --config /etc/caddy/Caddyfile` die geladene Caddy-Konfiguration prüfen. Diese Dateien auf dem VPS nicht allein durch einen Git-Push als aktualisiert betrachten. `admin.himmelsteil.de` bleibt beim bestehenden Reverse Proxy. `www.himmelsteil.de` leitet auf die Hauptdomain um.
+```powershell
+cd "C:\Users\bmxra\Documents\ChatGPT\Himmelsteil - Anna Dahlenburg"
+npm run build
+scp -i "$env:USERPROFILE\.ssh\himmelsteil_timo" -r .\dist "timo@212.227.161.13:/home/timo/site-preview-upload-1"
+```
 
-**Noch nicht live schalten:** Die lokale Website enthält Fallback-Inhalte und Platzhalter für Impressum und Datenschutz. Erst Inhalte, Bilder/Bildrechte und Rechtstexte prüfen. Danach in IONOS die Web-DNS-Einträge für `@` und `www` auf den VPS richten. Den bisherigen IONOS-Default-Site-A-Record und den alten AAAA-Record für `@` entfernen beziehungsweise ersetzen, sonst können Aufrufe weiter bei IONOS landen. MX-, SPF- und DKIM-Einträge für E-Mail unverändert lassen. Caddy kann HTTPS ausstellen, sobald die Domains auf den VPS zeigen und Port 80/443 erreichbar sind.
+Auf dem VPS den Quellpfad prüfen und mit `sudo rsync -a --delete /home/timo/site-preview-upload-1/ /opt/himmelsteil-site/` veröffentlichen. `--delete` entfernt dort alte Blogseiten; das Zielverzeichnis darf deshalb ausschließlich die Website enthalten. Für spätere Uploads jeweils einen neuen Verzeichnisnamen verwenden. Falls `rsync` fehlt, zunächst `sudo apt install rsync` ausführen. Keine `.env`, Tokens, Datenbankdateien oder Backups in `dist/` legen.
+
+4. Aus dem Backend-Repository `Caddyfile`, `Caddyfile.production` und `compose.yaml` in ein temporäres Verzeichnis auf dem VPS übertragen:
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\himmelsteil_timo" timo@212.227.161.13 'mkdir -p /home/timo/cms-preview-config'
+scp -i "$env:USERPROFILE\.ssh\himmelsteil_timo" .\himmelsteil_backend\server\directus\Caddyfile .\himmelsteil_backend\server\directus\Caddyfile.production .\himmelsteil_backend\server\directus\compose.yaml "timo@212.227.161.13:/home/timo/cms-preview-config/"
+```
+
+Die bestehende Caddy- und Compose-Datei vorher sichern, dann die drei Dateien nach `/opt/himmelsteil-cms/` kopieren. `Caddyfile.production` muss vorhanden sein, weil Compose es mountet. Auf dem VPS:
+
+```bash
+sudo cp -a /opt/himmelsteil-cms/Caddyfile /opt/himmelsteil-cms/Caddyfile.before-preview
+sudo cp -a /opt/himmelsteil-cms/compose.yaml /opt/himmelsteil-cms/compose.yaml.before-preview
+sudo install -m 0644 -o root -g sudo /home/timo/cms-preview-config/Caddyfile /opt/himmelsteil-cms/Caddyfile
+sudo install -m 0644 -o root -g sudo /home/timo/cms-preview-config/Caddyfile.production /opt/himmelsteil-cms/Caddyfile.production
+sudo install -m 0644 -o root -g sudo /home/timo/cms-preview-config/compose.yaml /opt/himmelsteil-cms/compose.yaml
+cd /opt/himmelsteil-cms
+```
+
+Dann vor dem Neustart prüfen:
+
+```bash
+sudo docker compose config --quiet
+sudo docker compose run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile
+sudo docker compose up -d
+sudo docker compose ps
+```
+
+`admin.himmelsteil.de` muss anschließend weiterhin funktionieren. `https://preview.himmelsteil.de` muss ohne Zugangsdaten `401 Unauthorized` liefern und nach Eingabe von Benutzer `preview` und dem gewählten Passwort die Website anzeigen. Der Header `X-Robots-Tag: noindex, nofollow, noarchive` ergänzt den Passwortschutz. [Caddy Basic Auth](https://caddyserver.com/docs/caddyfile/directives/basic_auth) akzeptiert nur Hashes; HTTPS wird von Caddy automatisch verwaltet.
+
+**Noch nicht live schalten:** Die lokale Website enthält Fallback-Inhalte und Platzhalter für Impressum und Datenschutz. Erst Inhalte, Bilder/Bildrechte und Rechtstexte prüfen. Danach die Produktionsblöcke aus `Caddyfile.production` in Caddy importieren und die Web-DNS-Einträge für `@` und `www` auf den VPS richten. Den bisherigen IONOS-Default-Site-A-Record und den alten AAAA-Record für `@` entfernen beziehungsweise ersetzen, sonst können Aufrufe weiter bei IONOS landen. MX-, SPF- und DKIM-Einträge für E-Mail unverändert lassen.
 
 Git sichert nur Quellcode und Konfiguration. PostgreSQL-Daten und Directus-Uploads benötigen weiterhin externe Backups.
 

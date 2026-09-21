@@ -11,7 +11,7 @@
   reverse_proxy directus:8055
 }
 
-himmelsteil.de {
+preview.himmelsteil.de {
   root * /srv/site
   encode zstd gzip
 
@@ -19,11 +19,12 @@ himmelsteil.de {
     -Server
     X-Content-Type-Options "nosniff"
     Referrer-Policy "strict-origin-when-cross-origin"
+    X-Robots-Tag "noindex, nofollow, noarchive"
+  }
+
+  basic_auth argon2id {
+    preview {$PREVIEW_PASSWORD_HASH}
   }
 
   file_server
-}
-
-www.himmelsteil.de {
-  redir https://himmelsteil.de{uri} permanent
 }

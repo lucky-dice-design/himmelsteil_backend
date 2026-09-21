@@ -56,12 +56,14 @@ services:
       - directus
     environment:
       DIRECTUS_DOMAIN: ${DIRECTUS_DOMAIN}
+      PREVIEW_PASSWORD_HASH: ${PREVIEW_PASSWORD_HASH:?Preview password hash is required}
     ports:
       - "80:80"
       - "443:443"
       - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile.production:/etc/caddy/Caddyfile.production:ro
       - /opt/himmelsteil-site:/srv/site:ro
       - caddy_data:/data
       - caddy_config:/config
