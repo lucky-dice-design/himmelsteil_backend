@@ -6,9 +6,20 @@ himmelsteil.de {
     -Server
     X-Content-Type-Options "nosniff"
     Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "DENY"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security "max-age=31536000"
   }
 
-  file_server
+  @legacy_home path /index.html
+  @legacy_page path_regexp legacy_page ^/([a-z0-9-]+)\.html$
+
+  route {
+    redir @legacy_home /{?query} 308
+    redir @legacy_page /{re.legacy_page.1}{?query} 308
+    try_files {path}.html {path}
+    file_server
+  }
 }
 
 www.himmelsteil.de {

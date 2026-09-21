@@ -13,6 +13,8 @@ Für einen späteren Build aus Directus diese Umgebungsvariablen setzen:
 
 Ohne `DIRECTUS_URL` verwendet der Build automatisch `content/cms-fallback.json`.
 
+Fuer die Uebergangsphase mit bereits gepflegter Startseite, aber noch leeren Galerie-/Pakete-/Blog-Collections, kann beim Build `DIRECTUS_FALLBACK_EMPTY=1` gesetzt werden. Das gilt nur fuer diese drei Listen. Nach der Inhaltsmigration die Variable entfernen. Der Token bleibt nur in der geschuetzten Build-Umgebung.
+
 Ein automatischer Veröffentlichungs-Flow ist noch nicht eingerichtet. Bis der echte Content vorliegt, bleibt der Fallback-Build aktiv.
 
 ## Redaktionsablauf

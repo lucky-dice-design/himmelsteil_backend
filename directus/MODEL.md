@@ -1,6 +1,24 @@
 # Directus-Datenmodell
 
-Die Website erwartet drei Collections. Alle Collections verwenden das Directus-Feld `status` mit den Werten `draft` und `published`. Der Build liest ausschließlich veröffentlichte Einträge.
+Die Website verwendet drei Startseiten-Collections, zwei Rechtstext-Collections sowie die bestehenden Collections fuer Galerie, Pakete und Blog. Listen-Collections verwenden das Directus-Feld `status` mit den Werten `draft` und `published`; der Build liest nur veroeffentlichte Listeneintraege. `home_page` ist eine Singleton ohne Statusfeld und wird erst durch einen neuen statischen Build oeffentlich.
+
+## Rechtstexte
+
+`legal_pages` enthaelt genau die beiden vorbereiteten Datensaetze `impressum` und `datenschutz`. Der Editor kann Status, Seitentitel und SEO-Beschreibung aendern, aber keine URL-Kennung oder Seiten anlegen. Beide Seiten starten als Entwurf. Solange eine Seite nicht veroeffentlicht ist, bleibt der bisherige statische Platzhalter auf der Vorschau bestehen.
+
+`legal_sections` enthaelt die sortierbaren Abschnitte dieser Seiten. Jeder Abschnitt hat eine feste Seitenzuordnung, eine Ueberschrift, einen Text und einen Status. Leerzeilen im Text erzeugen Absaetze, einzelne Zeilenumbrueche einen Zeilenumbruch. HTML wird als Text ausgegeben. Nur veroeffentlichte Abschnitte einer veroeffentlichten Seite erscheinen nach dem naechsten Build. Eine veroeffentlichte Seite ohne vollstaendige Abschnitte laesst den Build fehlschlagen; die bisherige Vorschau bleibt stehen.
+
+Die uebernommenen Texte sind **rechtlich ungepruefte Entwuerfe**. Vor dem Livegang sind Angaben zum Betreiber, zum tatsaechlichen Hosting, zu Server-Logs, eingebundenen Diensten und Kontaktwegen durch die verantwortliche Person fachlich zu pruefen. Die Editor-Rolle hat weiterhin keinen Zugriff auf Benutzer, Rollen oder Systemeinstellungen.
+
+## Startseite
+
+`home_page` ist eine Singleton-Collection fuer die festen Startseitenbloecke. Sie enthaelt SEO-Titel und -Beschreibung, die Texte und optional das Bild des Hero-Bereichs, den Einleitungstext sowie die Ueberschrift des Anlassbereichs. `hero_image_alt` beschreibt das Hero-Bild. Die Ziele der drei Schaltflaechen bleiben im Frontend fest: Kontakt, Galerie und Pakete.
+
+`home_tiles` enthaelt genau drei Kacheln mit den eindeutigen Zielen `galerie`, `pakete` und `blog`. Label, Reihenfolge und optionales Bild sind editierbar; das Linkziel selbst ist fuer Editoren gesperrt. Alle drei Kacheln muessen `published` sein, damit der Build die gleichmaessige Dreierreihe erzeugt. Ohne CMS-Bild verwendet der Build vorlaeufig das vorhandene Galerie-Kachelbild.
+
+`home_occasions` enthaelt die wiederholbaren Anlass-Kacheln mit Titel, Beschreibung, Reihenfolge und Status. Mindestens ein Eintrag muss `published` sein. `seed_key` ist nur fuer die einmalige, wiederholbar ausfuehrbare Uebernahme der vier bisherigen Anlaesse vorgesehen; Editoren bearbeiten dieses Feld nicht.
+
+Der `Website Build`-Benutzer liest die Startseite und nur veroeffentlichte Kacheln/Anlaesse. Der `Website Editor` darf Texte und Bilder bearbeiten und Anlaesse hinzufuegen, aber keine Collections oder Berechtigungen verwalten. Bilddateien bleiben auf den Directus-Ordner `Website` beschraenkt. Das statische Frontend wird weiterhin erst bei einem neuen Build aktualisiert.
 
 ## `gallery_items`
 
@@ -41,7 +59,7 @@ Die Website erwartet drei Collections. Alle Collections verwenden das Directus-F
 | `meta_description` | Text | Empfohlen: ungefähr 140-160 Zeichen |
 | `published_at` | Date | Veröffentlichungsdatum |
 | `reading_minutes` | Integer | Geschätzte Lesezeit |
-| `sections` | JSON | Repeater nach dem unten beschriebenen Format |
+| `sections` | JSON | Optionales Array nach dem unten beschriebenen Format; ohne Abschnitte wird der Teaser als Artikeltext verwendet |
 
 ### Format für `sections`
 

@@ -36,10 +36,14 @@ services:
       DB_DATABASE: directus
       DB_USER: directus
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      IP_TRUST_PROXY: "1"
+      SESSION_COOKIE_SECURE: "true"
+      REFRESH_TOKEN_COOKIE_SECURE: "true"
       WEBSOCKETS_ENABLED: "false"
       RATE_LIMITER_ENABLED: "true"
-      RATE_LIMITER_POINTS: "30"
-      RATE_LIMITER_DURATION: "1"
+      RATE_LIMITER_POINTS: "120"
+      RATE_LIMITER_DURATION: "60"
+      LOGIN_STALL_TIME: "1000"
       FILES_MAX_UPLOAD_SIZE: "20mb"
       TELEMETRY: "false"
     volumes:

@@ -112,17 +112,17 @@ const grants = [
   {
     collection: "gallery_items",
     permissions: { status: { _eq: "published" } },
-    fields: ["id", "sort", "category", "title", "description", "image", "image_alt", "swatch_class"],
+    fields: ["id", "status", "sort", "category", "title", "description", "image", "image_alt", "swatch_class"],
   },
   {
     collection: "packages",
     permissions: { status: { _eq: "published" } },
-    fields: ["id", "sort", "kicker", "title", "description", "features", "cta_label", "featured"],
+    fields: ["id", "status", "sort", "kicker", "title", "description", "features", "cta_label", "featured"],
   },
   {
     collection: "posts",
     permissions: { status: { _eq: "published" } },
-    fields: ["id", "title", "slug", "category", "excerpt", "meta_title", "meta_description", "published_at", "reading_minutes", "sections"],
+    fields: ["id", "status", "title", "slug", "category", "excerpt", "meta_title", "meta_description", "published_at", "reading_minutes", "sections"],
   },
   {
     collection: "directus_files",
@@ -135,14 +135,24 @@ const existingGrants = await request(
   listPath("permissions", "policy", policy.id, "id,collection,action,permissions,fields"),
   "GET", undefined, adminToken
 );
-if (existingGrants.some((item) => item.action !== "read" || !grants.some((grant) => grant.collection === item.collection))) {
+const allowedCollections = new Set([
+  ...grants.map((grant) => grant.collection),
+  "home_page", "home_tiles", "home_occasions", "legal_pages", "legal_sections",
+]);
+if (existingGrants.some((item) => item.action !== "read" || !allowedCollections.has(item.collection))) {
   throw new Error("Die Website-Build-Policy enthält unerwartete Berechtigungen; bitte manuell prüfen.");
 }
 for (const grant of grants) {
-  const existing = existingGrants.find((item) => item.collection === grant.collection && item.action === "read");
+  const matches = existingGrants.filter((item) => item.collection === grant.collection && item.action === "read");
+  if (matches.length > 1) throw new Error(`Doppeltes Leserecht fuer ${grant.collection}.`);
+  const existing = matches[0];
   if (existing) {
     if (JSON.stringify(existing.permissions) !== JSON.stringify(grant.permissions)) {
       throw new Error(`Vorhandene Leseregel für ${grant.collection} weicht vom Soll ab; bitte manuell prüfen.`);
+    }
+    const fields = Array.isArray(existing.fields) ? existing.fields : String(existing.fields || "").split(",").filter(Boolean);
+    if (fields.length !== grant.fields.length || !fields.every((field) => grant.fields.includes(field))) {
+      throw new Error(`Vorhandene Feldrechte fuer ${grant.collection} weichen ab; fix-build-status-access.mjs ausfuehren.`);
     }
     console.log(`Leserecht vorhanden: ${grant.collection}`);
     continue;

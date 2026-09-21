@@ -109,7 +109,61 @@ sudo docker compose exec directus node /tmp/setup-editor-access.mjs
 
 Das Skript fragt Admin-Zugang, Editor-E-Mail, Namen und ein mindestens 16 Zeichen langes Editor-Passwort im Terminal ab. Passwoerter und Tokens werden nicht ausgegeben. Eine vorhandene E-Mail wird nicht veraendert. Bei einer fehlgeschlagenen Rechtepruefung wird der neu angelegte Editor gesperrt. Das Passwort nur ueber einen sicheren Kanal an den Editor weitergeben und anschliessend die Anmeldung und einen Bild-Upload im Data Studio pruefen. Kein Passwort in Chat, Git oder Shell-Argumente schreiben.
 
+### Startseiten-Collections
+
+`setup-homepage.mjs` legt `home_page` (Singleton), `home_tiles` und `home_occasions` mit den bisherigen Starttexten an. Es ergaenzt die vorhandenen Policies `Website Build` und `Website Editor`; bestehende Inhalte werden nicht ueberschrieben. Die erste Einrichtung benoetigt den Admin-Login, aber keinen Build-Token im Skript.
+
+Das Skript kann nach einem Abbruch erneut laufen: vorhandene Collections, Felder, Verknuepfungen und Startinhalte werden erkannt. Die Singleton wird beim ersten Befuellen ueber `PATCH /items/home_page` geschrieben. Bei einer Rate-Limit-Antwort (`429`) wartet das Skript begrenzt und versucht die Anfrage erneut.
+
+Nach einem Backup das Skript aus dem Backend-Repository nach `/home/timo/cms-home-config/` uebertragen. Auf dem VPS:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo bash backup.sh
+sudo install -m 0640 -o root -g sudo /home/timo/cms-home-config/setup-homepage.mjs /opt/himmelsteil-cms/setup-homepage.mjs
+sudo docker compose cp setup-homepage.mjs directus:/tmp/setup-homepage.mjs
+sudo docker compose exec -u root directus chmod 0644 /tmp/setup-homepage.mjs
+sudo docker compose exec directus node /tmp/setup-homepage.mjs
+```
+
+Danach im Directus Data Studio die drei Bereiche und die Rechte mit dem Editor-Konto pruefen. Der Hero und die Galerie-Kachel behalten bis zur Auswahl eines CMS-Bilds ihre bisherigen statischen Fotos. Ein neuer Website-Build ist erforderlich, damit Aenderungen auf `preview.himmelsteil.de` erscheinen. Die Produktionsdomain bleibt davon unberuehrt.
+
+### Impressum und Datenschutz im CMS
+
+`setup-legal-pages.mjs` legt die festen Seiten `impressum` und `datenschutz` sowie ihre sortierbaren Textabschnitte an. Die Seiten starten als **Entwurf**; bestehende Datensaetze werden bei erneutem Ausfuehren nicht ueberschrieben. Der Website-Build liest nur veroeffentlichte Seiten und Abschnitte. Die Editor-Rolle kann Texte und Status bearbeiten, aber keine URL-Kennung aendern, keine Rechtstext-Seite erstellen und keine Systemeinstellungen verwalten. Die Texte sind Vorlagen, keine rechtliche Freigabe.
+
+Zuerst das Setup auf dem VPS ausfuehren, **danach** die Frontend-Buildquelle aktualisieren; sonst findet der naechste Cron-Build die neuen Collections noch nicht. Nach einem Backup das Skript aus dem Backend-Repository nach `/home/timo/cms-legal-config/` uebertragen:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo bash backup.sh
+sudo install -m 0640 -o root -g sudo /home/timo/cms-legal-config/setup-legal-pages.mjs /opt/himmelsteil-cms/setup-legal-pages.mjs
+sudo docker compose cp setup-legal-pages.mjs directus:/tmp/setup-legal-pages.mjs
+sudo docker compose exec -u root directus chmod 0644 /tmp/setup-legal-pages.mjs
+sudo docker compose exec directus node /tmp/setup-legal-pages.mjs
+```
+
+Danach im Data Studio die beiden Seiten und die zugehoerigen Abschnitte bearbeiten. Erst nach fachlicher Pruefung pro Seite den Status auf `Veroeffentlicht` setzen. Fuer die aktualisierte Buildquelle die Anleitung unter `server/preview/README.md` verwenden und `sudo /usr/local/sbin/himmelsteil-preview-build --dry-run` vor dem echten Lauf testen. Bis zur Veroeffentlichung bleiben die bisherigen Platzhalter auf der Vorschau sichtbar. Eine misslungene Build-Pruefung darf nicht durch breitere Rechte oder ungeschuetzte Inhalte umgangen werden.
+
+### Status-Feld fuer den Build-Benutzer
+
+Bei Installationen mit der ersten Version von `setup-build-access.mjs` fehlt im Leserecht fuer `gallery_items`, `packages` und `posts` das Feld `status`. Der statische Build filtert auf `status=published` und erhaelt dann `403`. `fix-build-status-access.mjs` ergaenzt ausschliesslich dieses Feld in den drei vorhandenen Build-Leserechten; der Veroeffentlichungsfilter und der technische Token bleiben unveraendert. Das Skript ist wiederholbar und stoppt bei abweichenden Rechten.
+
+Nach einem Backup das Skript nach `/home/timo/cms-home-config/` uebertragen und auf dem VPS ausfuehren:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo bash backup.sh
+sudo install -m 0640 -o root -g sudo /home/timo/cms-home-config/fix-build-status-access.mjs /opt/himmelsteil-cms/fix-build-status-access.mjs
+sudo docker compose cp fix-build-status-access.mjs directus:/tmp/fix-build-status-access.mjs
+sudo docker compose exec -u root directus chmod 0644 /tmp/fix-build-status-access.mjs
+sudo docker compose exec directus node /tmp/fix-build-status-access.mjs
+```
+
 ## Geschützte Vorschau
+
+Für automatische Aktualisierungen nach einer Veröffentlichung im CMS steht der fünfminütige VPS-Cronjob unter [`server/preview/README.md`](../preview/README.md). Er wird erst nach einem erfolgreichen manuellen Trockenlauf aktiviert; ein fehlgeschlagener Build lässt die bisherige Vorschau unverändert.
+Die Umstellung auf extensionlose URLs und die zusätzliche VPS-Härtung stehen unter [`server/security/README.md`](../security/README.md). Die dortigen Caddy- und Directus-Dateien vor dem Austausch sichern und validieren.
 
 Die Compose-Datei mountet `/opt/himmelsteil-site` schreibgeschützt nach `/srv/site` im Caddy-Container. `Caddyfile` bedient Directus und die passwortgeschützte Vorschau. Die getrennte `Caddyfile.production` mit der Hauptdomain wird nur gemountet, **nicht** importiert und ist daher noch nicht aktiv.
 
