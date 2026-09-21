@@ -11,10 +11,15 @@ fi
 
 backup_dir="${BACKUP_DIR:-./backups}"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-mkdir -p "$backup_dir"
+install -d -m 0750 -o root -g timo "$backup_dir"
 
 docker compose exec -T database pg_dump -U directus -d directus | gzip > "$backup_dir/database-$timestamp.sql.gz"
 docker run --rm -v himmelsteil-cms_directus_uploads:/source:ro -v "$(cd "$backup_dir" && pwd):/backup" alpine:3.22 tar -czf "/backup/uploads-$timestamp.tar.gz" -C /source .
+
+gzip -t "$backup_dir/database-$timestamp.sql.gz"
+tar -tzf "$backup_dir/uploads-$timestamp.tar.gz" > /dev/null
+chgrp timo "$backup_dir/database-$timestamp.sql.gz" "$backup_dir/uploads-$timestamp.tar.gz"
+chmod 0640 "$backup_dir/database-$timestamp.sql.gz" "$backup_dir/uploads-$timestamp.tar.gz"
 
 find "$backup_dir" -type f -mtime +14 -delete
 echo "Backup erstellt: $backup_dir ($timestamp)"

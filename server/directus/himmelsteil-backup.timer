@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Himmelsteil backup daily
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+Persistent=true
+Unit=himmelsteil-backup.service
+
+[Install]
+WantedBy=timers.target

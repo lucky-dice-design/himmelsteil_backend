@@ -92,6 +92,23 @@ Wenn ein bereits vorhandener Build-Token beim Test `401` ergibt, setzt das Skrip
 
 7. Den Token später im technischen Benutzer im Directus-Adminbereich aufrufen und nur in der geschützten Build-Umgebung als `DIRECTUS_TOKEN` speichern; `DIRECTUS_URL` ist `https://admin.himmelsteil.de`. Niemals einen Admin-Token für den Website-Build verwenden oder einen Token in Chat, Screenshots oder Git speichern.
 
+### Website-Editor
+
+Fuer redaktionelle Arbeit `setup-editor-access.mjs` verwenden. Es legt die Rolle und Policy `Website Editor` mit Data-Studio-Zugang, aber ohne Admin-Rechte an. Die Rolle darf Galerie, Pakete und Blog lesen, erstellen und bearbeiten, jedoch nicht loeschen. Dateien darf sie nur im Ordner `Website` lesen, Bilddateien dort hochladen und Metadaten dort bearbeiten. Sie darf weder Benutzer/Rollen noch Projekteinstellungen verwalten. Fuer eingeschraenkte Datei-Rechte muss die passende Directus-Lizenz bereits aktiv sein.
+
+Vorher ein Backup erstellen. Das Skript in den Directus-Container kopieren und interaktiv starten:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo bash backup.sh
+sudo install -m 0640 -o root -g sudo /home/timo/cms-editor-config/setup-editor-access.mjs /opt/himmelsteil-cms/setup-editor-access.mjs
+sudo docker compose cp setup-editor-access.mjs directus:/tmp/setup-editor-access.mjs
+sudo docker compose exec -u root directus chmod 0644 /tmp/setup-editor-access.mjs
+sudo docker compose exec directus node /tmp/setup-editor-access.mjs
+```
+
+Das Skript fragt Admin-Zugang, Editor-E-Mail, Namen und ein mindestens 16 Zeichen langes Editor-Passwort im Terminal ab. Passwoerter und Tokens werden nicht ausgegeben. Eine vorhandene E-Mail wird nicht veraendert. Bei einer fehlgeschlagenen Rechtepruefung wird der neu angelegte Editor gesperrt. Das Passwort nur ueber einen sicheren Kanal an den Editor weitergeben und anschliessend die Anmeldung und einen Bild-Upload im Data Studio pruefen. Kein Passwort in Chat, Git oder Shell-Argumente schreiben.
+
 ## Geschützte Vorschau
 
 Die Compose-Datei mountet `/opt/himmelsteil-site` schreibgeschützt nach `/srv/site` im Caddy-Container. `Caddyfile` bedient Directus und die passwortgeschützte Vorschau. Die getrennte `Caddyfile.production` mit der Hauptdomain wird nur gemountet, **nicht** importiert und ist daher noch nicht aktiv.
@@ -159,14 +176,60 @@ Die Variablen `DIRECTUS_ADMIN_EMAIL` und `DIRECTUS_ADMIN_PASSWORD` können nach 
 
 ## Backups
 
-Das Skript `backup.sh` sichert PostgreSQL und Directus-Uploads und behält lokale Sicherungen 14 Tage:
+Das Skript `backup.sh` sichert PostgreSQL und Directus-Uploads und behält Sicherungen auf dem VPS 14 Tage:
 
 ```bash
 cd /opt/himmelsteil-cms
 sudo bash backup.sh
 ```
 
-Lokale Backups auf demselben VPS reichen nicht als alleinige Sicherung. Vor dem Produktivbetrieb wird zusätzlich ein verschlüsseltes externes Backup-Ziel eingerichtet.
+`backup.sh` prüft beide Archive und macht sie nur für `root` und die Gruppe `timo` lesbar. Das Leseskript `latest-backup.sh` liefert Zeitstempel und SHA-256-Prüfsummen des neuesten vollständigen Paares. Der Windows-Abruf liegt unter `scripts/Pull-HimmelsteilBackup.ps1` im Backend-Repository. Die Dateien werden standardmäßig unter `D:\Himmelsteil\Backups` gespeichert, also außerhalb beider Git-Repositories.
+
+Die Shell-Skripte aus dem Backend-Repository auf Windows übertragen:
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\himmelsteil_timo" timo@212.227.161.13 'mkdir -p -m 0700 /home/timo/backup-config'
+scp -i "$env:USERPROFILE\.ssh\himmelsteil_timo" .\server\directus\backup.sh .\server\directus\latest-backup.sh 'timo@212.227.161.13:/home/timo/backup-config/'
+```
+
+Einmalig nach der Übertragung auf dem VPS als `timo` ausführen:
+
+```bash
+sudo install -m 0750 -o root -g sudo /home/timo/backup-config/backup.sh /opt/himmelsteil-cms/backup.sh
+sudo install -m 0755 -o root -g sudo /home/timo/backup-config/latest-backup.sh /opt/himmelsteil-cms/latest-backup.sh
+sudo install -d -m 0750 -o root -g timo /opt/himmelsteil-cms/backups
+sudo find /opt/himmelsteil-cms/backups -maxdepth 1 -type f \( -name 'database-*.sql.gz' -o -name 'uploads-*.tar.gz' \) -exec chgrp timo {} +
+sudo find /opt/himmelsteil-cms/backups -maxdepth 1 -type f \( -name 'database-*.sql.gz' -o -name 'uploads-*.tar.gz' \) -exec chmod 0640 {} +
+cd /opt/himmelsteil-cms
+sudo bash backup.sh
+bash latest-backup.sh
+```
+
+Danach auf Windows im Backend-Repository mit PowerShell starten:
+
+```powershell
+pwsh -NoProfile -File .\scripts\Pull-HimmelsteilBackup.ps1
+```
+
+Der Abruf verwendet den vorhandenen SSH-Schlüssel, lädt nur ein vollständiges Datenbank-/Upload-Paar und prüft beide SHA-256-Werte vor der Übernahme. Er führt **kein** `sudo` über SSH aus. Unvollständige Downloads bleiben zur Diagnose als `.partial-*` liegen und zählen nicht als Backup. Ohne regelmäßig neu erzeugte VPS-Backups kopiert der Abruf nur den letzten Stand erneut; die Automatisierung wird erst nach einem erfolgreichen manuellen Lauf eingerichtet.
+
+Auf Windows nach dem ersten Abruf `pwsh -NoProfile -File .\scripts\Protect-BackupDirectory.ps1` ausfuehren. Das entfernt geerbte Zugriffe auf `D:\Himmelsteil\Backups` und laesst nur den aktuellen Windows-Benutzer, `SYSTEM` und lokale Administratoren zu. Vor dem Produktivbetrieb die Berechtigungen bestehender Dateien ebenfalls pruefen.
+
+### Taegliche Sicherung
+
+Nach einem erfolgreichen manuellen Abruf die Dateien `himmelsteil-backup.service` und `himmelsteil-backup.timer` auf den VPS nach `/home/timo/backup-config/` kopieren und als `timo` installieren:
+
+```bash
+sudo install -m 0644 -o root -g root /home/timo/backup-config/himmelsteil-backup.service /etc/systemd/system/himmelsteil-backup.service
+sudo install -m 0644 -o root -g root /home/timo/backup-config/himmelsteil-backup.timer /etc/systemd/system/himmelsteil-backup.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now himmelsteil-backup.timer
+systemctl list-timers himmelsteil-backup.timer --no-pager
+```
+
+Der VPS sichert taeglich um 02:30 UTC; `Persistent=true` holt einen verpassten Lauf nach einem Neustart nach. Unter Windows im Backend-Repository `pwsh -NoProfile -File .\scripts\Install-BackupTask.ps1` ausfuehren. Der Task holt das neueste Backup taeglich um 20:00 Uhr unter dem angemeldeten Benutzer ab und holt einen verpassten Start nach. Der PC muss dafuer eingeschaltet sein und der Benutzer angemeldet sein. Der Task speichert kein Windows-Passwort und nutzt den bestehenden SSH-Schluessel. Status in der Windows-Aufgabenplanung unter `Himmelsteil Backup` beziehungsweise mit `Get-ScheduledTaskInfo -TaskName 'Himmelsteil Backup'` pruefen. Die Backup-Dateien auf `D:` werden derzeit nicht automatisch geloescht; Speicherplatz und Task-Ergebnis regelmaessig kontrollieren.
+
+Die Sicherungen enthalten Datenbankinhalte und hochgeladene Dateien. Zugriff auf den Windows-Account und die Backup-Dateien einschränken und für Verschlüsselung von Laufwerk `D:` sorgen (z. B. BitLocker/Geräteverschlüsselung). Bei einem Verlust des PCs ist diese Kopie ebenfalls weg; für echte Ausfallsicherheit später einen zweiten, getrennten Datenträger oder ein verschlüsseltes Offsite-Ziel ergänzen. Gelegentlich einen Restore auf einem Testsystem prüfen. Keine Backups, Zugangsdaten oder `.env` nach GitHub hochladen.
 
 ## Aktualisierung
 

@@ -1,0 +1,10 @@
+[Unit]
+Description=Himmelsteil Directus database and uploads backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/himmelsteil-cms
+UMask=0077
+ExecStart=/usr/bin/bash /opt/himmelsteil-cms/backup.sh
