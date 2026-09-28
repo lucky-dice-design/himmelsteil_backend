@@ -85,6 +85,7 @@ const collections = [
   {
     name: "contact_requests", icon: "inbox", singleton: false, note: "Personenbezogene Kontaktanfragen; nicht oeffentlich",
     fields: [
+      field("request_id", "string", { hidden: true }, { is_unique: true }),
       field("status", "string", { interface: "select-dropdown", required: true, options: { choices: [
         { text: "Offen", value: "open" }, { text: "In Bearbeitung", value: "in_progress" }, { text: "Erledigt", value: "done" },
       ] } }, { default_value: "open" }),
@@ -139,24 +140,28 @@ async function ensurePolicy(name, appAccess, icon, description) {
 }
 async function ensureGrant(policy, grant) {
   const existing = await request(listPath("permissions", "policy", policy.id, "id,collection,action"), "GET", undefined, adminToken);
-  if (existing.some((item) => item.collection === grant.collection && item.action === grant.action)) return;
+  const current = existing.find((item) => item.collection === grant.collection && item.action === grant.action);
+  if (current) {
+    await request(`/permissions/${current.id}`, "PATCH", { policy: policy.id, ...grant }, adminToken);
+    return;
+  }
   await request("/permissions", "POST", { policy: policy.id, ...grant }, adminToken);
   console.log(`Recht angelegt: ${policy.name} ${grant.collection}/${grant.action}`);
 }
 
 const buildPolicy = await ensurePolicy("Website Build", false);
-await ensureGrant(buildPolicy, { collection: "contact_form", action: "read", permissions: {}, fields: ["id", ...formFields] });
+await ensureGrant(buildPolicy, { collection: "contact_form", action: "read", permissions: null, fields: ["id", ...formFields] });
 await ensureGrant(buildPolicy, { collection: "contact_options", action: "read", permissions: { status: { _eq: "published" } }, fields: ["id", "status", "sort", "label"] });
 
 const editorPolicy = await ensurePolicy("Website Editor", true);
 for (const grant of [
-  { collection: "contact_form", action: "read", permissions: {}, fields: ["id", ...formFields] },
-  { collection: "contact_form", action: "update", permissions: {}, fields: formFields },
-  { collection: "contact_options", action: "read", permissions: {}, fields: ["id", "status", "sort", "label"] },
-  { collection: "contact_options", action: "create", permissions: {}, fields: ["status", "sort", "label"] },
-  { collection: "contact_options", action: "update", permissions: {}, fields: ["status", "sort", "label"] },
-  { collection: "contact_requests", action: "read", permissions: {}, fields: ["id", "status", "notification_status", "created_at", "consent_at", "name", "email", "occasion", "timeframe", "message", "internal_note"] },
-  { collection: "contact_requests", action: "update", permissions: {}, fields: ["status", "internal_note"] },
+  { collection: "contact_form", action: "read", permissions: null, fields: ["id", ...formFields] },
+  { collection: "contact_form", action: "update", permissions: null, fields: formFields },
+  { collection: "contact_options", action: "read", permissions: null, fields: ["id", "status", "sort", "label"] },
+  { collection: "contact_options", action: "create", permissions: null, fields: ["status", "sort", "label"] },
+  { collection: "contact_options", action: "update", permissions: null, fields: ["status", "sort", "label"] },
+  { collection: "contact_requests", action: "read", permissions: null, fields: ["id", "request_id", "status", "notification_status", "created_at", "consent_at", "name", "email", "occasion", "timeframe", "message", "internal_note"] },
+  { collection: "contact_requests", action: "update", permissions: null, fields: ["status", "internal_note"] },
 ]) await ensureGrant(editorPolicy, grant);
 
 const roleName = "Website Contact Service";
@@ -169,8 +174,9 @@ const linked = await request(`/policies/${servicePolicy.id}?fields=roles.role`, 
 if (!(linked.roles || []).some((entry) => (typeof entry === "string" ? entry : entry.role) === serviceRole.id)) {
   await request(`/policies/${servicePolicy.id}`, "PATCH", { roles: { create: [{ role: serviceRole.id }] } }, adminToken);
 }
-await ensureGrant(servicePolicy, { collection: "contact_requests", action: "create", permissions: {}, fields: ["id", "status", "notification_status", "created_at", "consent_at", "name", "email", "occasion", "timeframe", "message"] });
-await ensureGrant(servicePolicy, { collection: "contact_requests", action: "update", permissions: {}, fields: ["notification_status"] });
+await ensureGrant(servicePolicy, { collection: "contact_requests", action: "create", permissions: null, fields: ["request_id", "status", "notification_status", "created_at", "consent_at", "name", "email", "occasion", "timeframe", "message"] });
+await ensureGrant(servicePolicy, { collection: "contact_requests", action: "read", permissions: null, fields: ["id", "notification_status"] });
+await ensureGrant(servicePolicy, { collection: "contact_requests", action: "update", permissions: null, fields: ["notification_status"] });
 
 const serviceEmail = "website-contact@himmelsteil.de";
 let serviceUser = await findUnique("users", "email", serviceEmail, "id,email,role,status,token", adminToken);
@@ -178,6 +184,17 @@ if (!serviceUser) {
   serviceUser = await request("/users", "POST", { email: serviceEmail, first_name: "Website", last_name: "Contact", status: "active", role: serviceRole.id, password: randomBytes(48).toString("hex"), token: serviceToken }, adminToken);
 } else if (serviceUser.token !== serviceToken || serviceUser.role !== serviceRole.id || serviceUser.status !== "active") {
   await request(`/users/${serviceUser.id}`, "PATCH", { token: serviceToken, role: serviceRole.id, status: "active" }, adminToken);
+}
+
+const serviceDetails = await request(`/users/${serviceUser.id}?fields=policies.policy`, "GET", undefined, adminToken);
+if (!(serviceDetails.policies || []).some((entry) => (typeof entry === "string" ? entry : entry.policy) === servicePolicy.id)) {
+  await request(`/users/${serviceUser.id}`, "PATCH", { policies: { create: [{ policy: servicePolicy.id }] } }, adminToken);
+}
+
+const effectiveResponse = await fetch(`${baseUrl}/permissions/me`, { headers: { Authorization: `Bearer ${serviceToken}` } });
+const effectivePayload = await effectiveResponse.json().catch(() => ({}));
+if (!effectiveResponse.ok || effectivePayload.data?.contact_requests?.create?.access === "none" || !effectivePayload.data?.contact_requests?.create) {
+  throw new Error("Contact-Service hat nach der Einrichtung kein wirksames Anlegerecht.");
 }
 
 fs.unlinkSync(serviceTokenPath);

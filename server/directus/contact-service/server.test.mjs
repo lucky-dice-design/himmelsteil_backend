@@ -16,7 +16,7 @@ before(async () => {
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : {};
     stored.push({ method: request.method, url: request.url, body });
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ data: body }));
+    response.end(JSON.stringify({ data: request.method === "POST" ? { ...body, id: 123 } : body }));
   });
   await new Promise((resolve) => directus.listen(port + 1, "127.0.0.1", resolve));
   child = spawn(process.execPath, ["server.mjs"], {
@@ -105,12 +105,13 @@ test("stores a valid request and marks its notification sent", async () => {
   });
   assert.equal(response.status, 200);
   assert.equal(stored[0].method, "POST");
-  assert.equal(stored[0].url, "/items/contact_requests");
-  assert.equal(stored[0].body.id, id);
+  assert.equal(stored[0].url, "/items/contact_requests?fields=id,notification_status");
+  assert.equal(stored[0].body.request_id, id);
+  assert.equal(stored[0].body.id, undefined);
   assert.equal(stored[0].body.status, "open");
   assert.deepEqual(stored[1], {
     method: "PATCH",
-    url: `/items/contact_requests/${id}`,
+    url: "/items/contact_requests/123?fields=id,notification_status",
     body: { notification_status: "sent" },
   });
 });

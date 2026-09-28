@@ -101,15 +101,18 @@ async function directusRequest(path, method, body) {
 }
 
 async function storeRequest(item) {
-  const { response, payload } = await directusRequest("/items/contact_requests", "POST", item);
-  if (response.ok) return true;
+  const { response, payload } = await directusRequest("/items/contact_requests?fields=id,notification_status", "POST", item);
+  if (response.ok) {
+    if (payload.data?.id === undefined || payload.data?.id === null) throw new Error("Directus create response has no id");
+    return payload.data.id;
+  }
   const code = payload.errors?.[0]?.extensions?.code;
   if (response.status === 400 && code === "RECORD_NOT_UNIQUE") return false;
   throw new Error(`Directus create failed: ${response.status} ${code || response.statusText}`);
 }
 
 async function setNotificationStatus(id, status) {
-  const { response } = await directusRequest(`/items/contact_requests/${id}`, "PATCH", { notification_status: status });
+  const { response } = await directusRequest(`/items/contact_requests/${id}?fields=id,notification_status`, "PATCH", { notification_status: status });
   if (!response.ok) throw new Error(`Directus notification update failed: ${response.status}`);
 }
 
@@ -143,8 +146,8 @@ async function handleContact(request, response) {
   }
 
   const now = new Date().toISOString();
-  const created = await storeRequest({
-    id: requestId,
+  const createdId = await storeRequest({
+    request_id: requestId,
     status: "open",
     notification_status: "pending",
     created_at: now,
@@ -155,7 +158,7 @@ async function handleContact(request, response) {
     timeframe: timeframe || null,
     message,
   });
-  if (!created) return json(response, 200, { ok: true });
+  if (!createdId) return json(response, 200, { ok: true });
 
   const subject = `Neue Website-Anfrage: ${occasion}`;
   const plain = [
@@ -173,10 +176,10 @@ async function handleContact(request, response) {
       text: plain,
       html,
     });
-    await setNotificationStatus(requestId, "sent");
+    await setNotificationStatus(createdId, "sent");
   } catch (error) {
     console.error("Contact notification failed:", error?.message || error);
-    await setNotificationStatus(requestId, "failed").catch((updateError) => {
+    await setNotificationStatus(createdId, "failed").catch((updateError) => {
       console.error("Notification status update failed:", updateError?.message || updateError);
     });
   }
