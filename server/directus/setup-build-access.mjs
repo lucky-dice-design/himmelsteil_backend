@@ -138,6 +138,7 @@ const existingGrants = await request(
 const allowedCollections = new Set([
   ...grants.map((grant) => grant.collection),
   "home_page", "home_tiles", "home_occasions", "legal_pages", "legal_sections",
+  "contact_form", "contact_options",
 ]);
 if (existingGrants.some((item) => item.action !== "read" || !allowedCollections.has(item.collection))) {
   throw new Error("Die Website-Build-Policy enthält unerwartete Berechtigungen; bitte manuell prüfen.");

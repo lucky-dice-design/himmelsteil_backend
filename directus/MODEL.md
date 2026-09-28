@@ -10,6 +10,14 @@ Die Website verwendet drei Startseiten-Collections, zwei Rechtstext-Collections 
 
 Die uebernommenen Texte sind **rechtlich ungepruefte Entwuerfe**. Vor dem Livegang sind Angaben zum Betreiber, zum tatsaechlichen Hosting, zu Server-Logs, eingebundenen Diensten und Kontaktwegen durch die verantwortliche Person fachlich zu pruefen. Die Editor-Rolle hat weiterhin keinen Zugriff auf Benutzer, Rollen oder Systemeinstellungen.
 
+## Kontaktformular und Anfragen
+
+`contact_form` ist eine Singleton fuer alle sichtbaren Texte, Feldbezeichnungen, Platzhalter, Rueckmeldungen, SEO-Angaben und das optionale Kontaktbild. Die technischen Feldschluessel und Pflichtfelder bleiben im Frontend fest, damit die serverseitige Validierung verlaesslich bleibt. `contact_options` enthaelt die sortierbaren, veroeffentlichten Auswahlwerte fuer den Anlass.
+
+`contact_requests` ist eine nicht oeffentliche Collection mit den personenbezogenen Anfragen. Neue Datensaetze starten als `open`; Redakteure koennen den Status auf `in_progress` oder `done` setzen und eine interne Notiz pflegen. Sie duerfen Anfragen nicht ueber das Website-Build-Token lesen und nicht selbst anlegen. Loeschungen bleiben Administratoren vorbehalten, damit Datenschutzanfragen kontrolliert bearbeitet werden.
+
+Der technische Benutzer `Website Contact Service` besitzt nur Erstellrechte fuer Anfragefelder und darf danach ausschliesslich `notification_status` auf `sent` oder `failed` setzen. Er hat keinen Lesezugriff. Der statische Build-Benutzer liest nur Formulartexte und veroeffentlichte Anlassoptionen, niemals Anfragen.
+
 ## Startseite
 
 `home_page` ist eine Singleton-Collection fuer die festen Startseitenbloecke. Sie enthaelt SEO-Titel und -Beschreibung, die Texte und optional das Bild des Hero-Bereichs, den Einleitungstext sowie die Ueberschrift des Anlassbereichs. `hero_image_alt` beschreibt das Hero-Bild. Die Ziele der drei Schaltflaechen bleiben im Frontend fest: Kontakt, Galerie und Pakete.

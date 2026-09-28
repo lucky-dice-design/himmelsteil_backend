@@ -34,6 +34,9 @@ preview.himmelsteil.de {
     }
     redir @legacy_home /{?query} 308
     redir @legacy_page /{re.legacy_page.1}{?query} 308
+    handle_path /api/* {
+      reverse_proxy contact:3000
+    }
     try_files {path}.html {path}
     file_server
   }

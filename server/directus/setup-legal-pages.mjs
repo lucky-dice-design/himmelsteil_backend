@@ -102,10 +102,10 @@ const pageDefaults = [
 
 const sectionDefaults = [
   { seed_key: "imprint-provider", page: "impressum", sort: 1, heading: "Angaben gemaess Paragraph 5 DDG", body: "Anna Dahlenburg\nhimmelsteil Papeterie\nParadeisstr. 7\n82362 Weilheim" },
-  { seed_key: "imprint-contact", page: "impressum", sort: 2, heading: "Kontakt", body: "E-Mail: hallo@himmelsteil.de\n\nHinweis: Dieser Entwurf muss vor der Veroeffentlichung um alle erforderlichen Angaben ergaenzt und geprueft werden." },
+  { seed_key: "imprint-contact", page: "impressum", sort: 2, heading: "Kontakt", body: "E-Mail: info@himmelsteil.de\n\nHinweis: Dieser Entwurf muss vor der Veroeffentlichung um alle erforderlichen Angaben ergaenzt und geprueft werden." },
   { seed_key: "privacy-controller", page: "datenschutz", sort: 1, heading: "Verantwortliche Stelle", body: "Anna Dahlenburg, himmelsteil Papeterie, Paradeisstr. 7, 82362 Weilheim." },
-  { seed_key: "privacy-contact", page: "datenschutz", sort: 2, heading: "Kontaktaufnahme", body: "Bei einer Kontaktaufnahme per E-Mail werden die uebermittelten Angaben zur Bearbeitung der Anfrage verwendet. Das Formular auf dieser Website oeffnet das lokal eingerichtete E-Mail-Programm." },
-  { seed_key: "privacy-technical", page: "datenschutz", sort: 3, heading: "Technische Hinweise", body: "Dieser Entwurf muss vor der Veroeffentlichung an das tatsaechliche Hosting, die Domain und alle eingebundenen Dienste angepasst und rechtlich geprueft werden." },
+  { seed_key: "privacy-contact", page: "datenschutz", sort: 2, heading: "Kontaktformular", body: "Bei einer Anfrage ueber das Kontaktformular werden Name, E-Mail-Adresse, Anlass, gewuenschter Zeitraum und Nachricht zur Bearbeitung der Anfrage im geschuetzten Redaktionssystem gespeichert und per E-Mail an uns uebermittelt. Pflichtangaben sind erforderlich, um die Anfrage beantworten zu koennen." },
+  { seed_key: "privacy-technical", page: "datenschutz", sort: 3, heading: "Technische Hinweise", body: "Beim Aufruf der Website und Absenden des Formulars koennen technisch notwendige Verbindungsdaten verarbeitet werden. Dieser Entwurf muss vor der Veroeffentlichung an das tatsaechliche Hosting, die Rechtsgrundlage, Empfaenger, Speicherdauer und alle eingebundenen Dienste angepasst und rechtlich geprueft werden." },
 ];
 
 const adminEmail = await prompt("Directus-Admin-E-Mail: ");

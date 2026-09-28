@@ -53,11 +53,49 @@ services:
       - database
       - web
 
+  contact:
+    build:
+      context: ./contact-service
+    restart: unless-stopped
+    environment:
+      SMTP_HOST: smtp.ionos.de
+      SMTP_PORT: "465"
+      SMTP_USER: info@himmelsteil.de
+      MAIL_FROM: himmelsteil Papeterie <info@himmelsteil.de>
+      MAIL_TO: info@himmelsteil.de
+      ALLOWED_ORIGINS: https://preview.himmelsteil.de,https://himmelsteil.de,https://www.himmelsteil.de
+      DIRECTUS_URL: http://directus:8055
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    pids_limit: 128
+    secrets:
+      - contact_smtp_password
+      - contact_directus_token
+    networks:
+      - web
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
       - directus
+      - contact
     environment:
       DIRECTUS_DOMAIN: ${DIRECTUS_DOMAIN}
       PREVIEW_PASSWORD_HASH: ${PREVIEW_PASSWORD_HASH:?Preview password hash is required}
@@ -85,3 +123,9 @@ volumes:
   directus_extensions:
   caddy_data:
   caddy_config:
+
+secrets:
+  contact_smtp_password:
+    file: ./secrets/contact_smtp_password
+  contact_directus_token:
+    file: ./secrets/contact_directus_token

@@ -164,6 +164,7 @@ sudo docker compose exec directus node /tmp/fix-build-status-access.mjs
 
 Für automatische Aktualisierungen nach einer Veröffentlichung im CMS steht der fünfminütige VPS-Cronjob unter [`server/preview/README.md`](../preview/README.md). Er wird erst nach einem erfolgreichen manuellen Trockenlauf aktiviert; ein fehlgeschlagener Build lässt die bisherige Vorschau unverändert.
 Die Umstellung auf extensionlose URLs und die zusätzliche VPS-Härtung stehen unter [`server/security/README.md`](../security/README.md). Die dortigen Caddy- und Directus-Dateien vor dem Austausch sichern und validieren.
+Ein Kontaktformular mit Versand ueber das IONOS-Postfach ist unter [`server/contact/README.md`](../contact/README.md) dokumentiert. Das Postfachpasswort wird als separates Docker-Secret gespeichert und darf weder in `.env` noch Git landen.
 
 Die Compose-Datei mountet `/opt/himmelsteil-site` schreibgeschützt nach `/srv/site` im Caddy-Container. `Caddyfile` bedient Directus und die passwortgeschützte Vorschau. Die getrennte `Caddyfile.production` mit der Hauptdomain wird nur gemountet, **nicht** importiert und ist daher noch nicht aktiv.
 
