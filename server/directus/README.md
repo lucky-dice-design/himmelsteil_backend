@@ -109,7 +109,25 @@ sudo docker compose exec directus node /tmp/setup-editor-access.mjs
 
 Das Skript fragt Admin-Zugang, Editor-E-Mail, Namen und ein mindestens 16 Zeichen langes Editor-Passwort im Terminal ab. Passwoerter und Tokens werden nicht ausgegeben. Eine vorhandene E-Mail wird nicht veraendert. Bei einer fehlgeschlagenen Rechtepruefung wird der neu angelegte Editor gesperrt. Das Passwort nur ueber einen sicheren Kanal an den Editor weitergeben und anschliessend die Anmeldung und einen Bild-Upload im Data Studio pruefen. Kein Passwort in Chat, Git oder Shell-Argumente schreiben.
 
-### Startseiten-Collections
+### Upload-Ordner fuer Bildfelder reparieren
+
+Nach Einrichtung aller CMS-Collections `fix-image-upload-folders.mjs` ausfuehren. Es setzt `meta.options.folder` auf den eindeutigen Dateiordner `Website` fuer `home_page.hero_image`, `home_tiles.image`, `gallery_items.image` und `contact_form.intro_image`. Damit verwenden auch direkte Uploads im Bildfeld den vom Build lesbaren Ordner. Die Datei-Policies bleiben unveraendert.
+
+Das Skript benoetigt einen interaktiven Admin-Login. Ohne Argument prueft es nur; mit `--apply` speichert es die Einstellungen und verschiebt bereits verknuepfte Bilder aus dem Stammverzeichnis nach `Website`. Es beruecksichtigt auch Entwuerfe, veraendert keine Bildverknuepfungen und laesst unzugeordnete Uploads unveraendert. Verknuepfte Dateien in anderen Ordnern fuehren vor den Aenderungen zum Abbruch. Nach einem Teilabbruch kann es erneut gestartet werden.
+
+Nach Uebertragung des Skripts nach `/home/timo/` auf dem VPS:
+
+```bash
+cd /opt/himmelsteil-cms
+sudo docker compose cp /home/timo/fix-image-upload-folders.mjs directus:/tmp/fix-image-upload-folders.mjs
+sudo docker compose exec directus node /tmp/fix-image-upload-folders.mjs
+sudo docker compose exec directus node /tmp/fix-image-upload-folders.mjs --apply
+sudo /usr/local/sbin/himmelsteil-preview-build
+```
+
+Danach Directus neu laden und einen direkten Upload im Bildfeld mit dem Redaktionskonto pruefen. Der Upload muss im Ordner `Website` erscheinen und nach Speichern des Inhalts im naechsten erfolgreichen Vorschau-Build sichtbar sein. Der Prueflauf des Skripts ersetzt diesen UI-Test nicht.
+
+### Einrichtung der Startseiten-Collections
 
 `setup-homepage.mjs` legt `home_page` (Singleton), `home_tiles` und `home_occasions` mit den bisherigen Starttexten an. Es ergaenzt die vorhandenen Policies `Website Build` und `Website Editor`; bestehende Inhalte werden nicht ueberschrieben. Die erste Einrichtung benoetigt den Admin-Login, aber keinen Build-Token im Skript.
 
