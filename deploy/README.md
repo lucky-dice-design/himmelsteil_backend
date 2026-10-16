@@ -103,6 +103,7 @@ inaktive Himmelsteil-Hauptdomain wird durch Deployments nicht aktiviert.
 - Kontaktservice bauen, Dienste starten und Caddy mit seinen Portfreigaben neu erstellen.
 - Bestehenden Vorschau-Cronjob und Logrotation aktualisieren.
 - Interaktive Schema-, Rollen- und Rechte-Setups nur bereitstellen. Ihre Ausführung bleibt ein expliziter Migrationsschritt vor einem darauf angewiesenen Frontend-Release.
+- Die neue Collection-Navigation wird ebenfalls bereitgestellt und einmalig interaktiv mit dem aktuellen Admin-Zugang angewendet; siehe `../directus/NAVIGATION.md`.
 
 Alle vier Skripte prüfen abschließend beide CMS über den lokalen Caddy mit
 korrektem TLS-Hostnamen. Ein aktiver oder für den Autostart aktivierter Host-Caddy

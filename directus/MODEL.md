@@ -1,5 +1,9 @@
 # Directus-Datenmodell
 
+Die Collection-Navigation mit Gruppen, Anzeigenamen und Icons ist in
+[NAVIGATION.md](NAVIGATION.md) beschrieben. Sie ändert keine technischen
+Collection-Namen und keine Inhalte.
+
 Die Website verwendet drei Startseiten-Collections, zwei Rechtstext-Collections sowie die bestehenden Collections fuer Galerie, Pakete und Blog. Listen-Collections verwenden das Directus-Feld `status` mit den Werten `draft` und `published`; der Build liest nur veroeffentlichte Listeneintraege. `home_page` ist eine Singleton ohne Statusfeld und wird erst durch einen neuen statischen Build oeffentlich.
 
 ## Rechtstexte

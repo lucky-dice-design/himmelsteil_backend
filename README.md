@@ -5,6 +5,7 @@ Konfiguration und Dokumentation für das selbst gehostete Directus-CMS auf dem I
 - `server/directus/`: Docker Compose, Caddy, Einrichtung, Backups und SSH-Konfiguration
 - `directus/MODEL.md`: Datenmodell für Galerie, Pakete und Blog
 - `directus/SETUP.md`: Build- und Redaktionsablauf
+- `directus/NAVIGATION.md`: gruppierte CMS-Navigation mit Anzeigenamen und Icons
 
 Bis zur Einrichtung des neuen Workflows gemäß `deploy/README.md` werden VPS-Dateien durch einen Git-Push **nicht** automatisch aktualisiert. Danach übernimmt der Workflow geprüfte Hauptbranch-Releases. Änderungen an Compose oder Caddy müssen gezielt übertragen, geprüft und angewendet werden. Insbesondere vor Änderungen an Directus oder PostgreSQL zuerst ein Backup erstellen.
 
