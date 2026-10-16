@@ -7,3 +7,4 @@ server/directus/backups/
 *.sql.gz
 *.tar.gz
 node_modules/
+.openai/
