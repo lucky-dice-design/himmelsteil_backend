@@ -2,7 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { applyCollectionNavigation } from "./setup-collection-navigation.mjs";
+import { applyCollectionNavigation, rateLimitDelay } from "./setup-collection-navigation.mjs";
 
 export const siteDefaults = {
   brand_name: "himmelsteil Papeterie", brand_home_label: "himmelsteil Papeterie Startseite",
@@ -122,7 +122,9 @@ async function main() {
       });
       if (response.status === 429 && attempt < 6) {
         await response.arrayBuffer();
-        await new Promise((done) => setTimeout(done, Math.min(1000 * 2 ** attempt, 8000)));
+        const delay = rateLimitDelay(response.headers.get("retry-after"));
+        console.warn(`Directus-Ratenlimit: erneuter Versuch in ${Math.ceil(delay / 1000)} Sekunden.`);
+        await new Promise((done) => setTimeout(done, delay));
         continue;
       }
       if (!response.ok) throw new Error(`Directus ${method} ${path}: HTTP ${response.status}`);

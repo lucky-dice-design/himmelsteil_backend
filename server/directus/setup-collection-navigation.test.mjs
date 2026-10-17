@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import fs from "node:fs";
-import { applyCollectionNavigation, navigationGroups } from "./setup-collection-navigation.mjs";
+import { applyCollectionNavigation, navigationGroups, rateLimitDelay } from "./setup-collection-navigation.mjs";
+
+test("rate limiting waits for the server window and respects Retry-After", () => {
+  const now = Date.UTC(2026, 9, 17, 11, 0, 0);
+  for (const value of [null, "", "invalid", "0", "5", "-1"]) assert.equal(rateLimitDelay(value, now), 60000);
+  assert.equal(rateLimitDelay("60", now), 61000);
+  assert.equal(rateLimitDelay("120", now), 121000);
+  assert.equal(rateLimitDelay("Sat, 17 Oct 2026 11:02:00 GMT", now), 121000);
+  assert.equal(rateLimitDelay("Sat, 17 Oct 2026 10:59:00 GMT", now), 60000);
+});
 
 const names = navigationGroups.flatMap((group) => group.children.map(([name]) => name));
 const quiet = { log() {} };

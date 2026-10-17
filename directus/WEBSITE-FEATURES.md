@@ -61,6 +61,11 @@ erst nach erfolgreichem Abschluss erneut starten.
 
 ### Vollständige Ersteinrichtung
 
+Bei HTTP 429 wartet das Setup mindestens eine Minute, berücksichtigt längere
+`Retry-After`-Angaben und meldet die Pause im Terminal. Die Directus-Ratenbegrenzung
+bleibt aktiv. Nach einem abgebrochenen Lauf kann dasselbe Setup erneut ausgeführt
+werden; vorhandene Inhalte werden nicht neu angelegt oder überschrieben.
+
 1. Datenbank/Uploads mit dem bestehenden Backup-Verfahren sichern. Den bisherigen
    Vorschau-Cronjob während der Schema- und Quellumstellung vorübergehend aussetzen.
    Das Skript erweitert Feldrechte und den Lesefilter des Build-Kontos um Preview;
