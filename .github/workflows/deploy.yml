@@ -17,8 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test collection navigation migration
-        run: node --test server/directus/setup-collection-navigation.test.mjs
+      - name: Test collection navigation and website migrations
+        run: node --test server/directus/setup-collection-navigation.test.mjs server/directus/setup-website-features.test.mjs
       - run: npm ci --ignore-scripts
         working-directory: server/directus/contact-service
       - run: node --test server.test.mjs
