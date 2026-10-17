@@ -1,5 +1,11 @@
 # Directus-Datenmodell
 
+> Erweiterung Oktober 2026: Nach `setup-website-features.mjs` gelten
+> `draft`, `preview` und `live` sowie zusätzliche Statusfelder an Singletons.
+> Die folgenden älteren Beschreibungen von `published` und statuslosen Singletons
+> beziehen sich auf die Basiseinrichtung. Die aktuelle Einrichtung und das Verhalten
+> sind in [WEBSITE-FEATURES.md](WEBSITE-FEATURES.md) beschrieben.
+
 Die Collection-Navigation mit Gruppen, Anzeigenamen und Icons ist in
 [NAVIGATION.md](NAVIGATION.md) beschrieben. Sie ändert keine technischen
 Collection-Namen und keine Inhalte.

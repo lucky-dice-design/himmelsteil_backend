@@ -124,5 +124,5 @@ test("navigation covers each content collection in the setup scripts exactly onc
   const definitions = ["setup-schema.mjs", "setup-homepage.mjs", "setup-contact-cms.mjs", "setup-legal-pages.mjs"]
     .flatMap((file) => [...fs.readFileSync(new URL(file, import.meta.url), "utf8").matchAll(/name: "([a-z_]+)",\s*icon:/g)].map((match) => match[1]));
   assert.equal(names.length, new Set(names).size);
-  assert.deepEqual([...names].sort(), definitions.sort());
+  assert.deepEqual([...names].sort(), [...definitions, "site_settings"].sort());
 });

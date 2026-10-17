@@ -1,5 +1,11 @@
 # Automatischer Vorschau-Build
 
+> Nach der Erweiterung Live/Preview zusätzlich
+> [WEBSITE-FEATURES.md](../../directus/WEBSITE-FEATURES.md) beachten:
+> Preview enthält Live- und Preview-Einträge. `--live` baut nur Live-Einträge in
+> ein separates öffentliches Verzeichnis. Die untenstehende Anleitung beschreibt
+> die ursprüngliche Einrichtung nur der geschützten Vorschau.
+
 Der Root-Cronjob baut alle fünf Minuten die geschützte Vorschau aus den veröffentlichten Directus-Inhalten. Nur ein erfolgreicher Build mit bestandener Strukturprüfung ersetzt Dateien unter `/opt/himmelsteil-site`. Er ändert weder `admin.himmelsteil.de` noch die öffentliche Hauptdomain. Änderungen im Frontend-Code erfordern weiterhin einen Upload der Quellkopie; GitHub ist hier Versionsverwaltung, kein Deployment-Trigger.
 
 Der kurzlebige Node-Container erreicht `admin.himmelsteil.de` über Dockers `host-gateway`-Zuordnung. Das umgeht einen DNS-Fehler im Container, ohne die DNS-Konfiguration des VPS oder den Directus-Token zu ändern. Der HTTPS-Hostname und damit die Zertifikatsprüfung bleiben gleich.

@@ -107,6 +107,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./Caddyfile.production:/etc/caddy/Caddyfile.production:ro
       - /opt/himmelsteil-site:/srv/site:ro
+      - /opt/himmelsteil-live-site:/srv/live-site:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

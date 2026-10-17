@@ -1,5 +1,5 @@
 himmelsteil.de {
-  root * /srv/site
+  root * /srv/live-site
   encode zstd gzip
 
   header {

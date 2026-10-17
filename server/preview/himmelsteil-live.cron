@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+1-59/5 * * * * root umask 027; /usr/local/sbin/himmelsteil-preview-build --live >>/var/log/himmelsteil-preview-build.log 2>&1
