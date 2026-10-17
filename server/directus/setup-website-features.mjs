@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { applyCollectionNavigation, rateLimitDelay } from "./setup-collection-navigation.mjs";
 
 export const siteDefaults = {
+  logo: null, logo_alt: "himmelsteil Papeterie", show_footer_logo: false,
   brand_name: "himmelsteil Papeterie", brand_home_label: "himmelsteil Papeterie Startseite",
   menu_label: "Menü öffnen", nav_label: "Hauptnavigation",
   header_links: [
@@ -18,12 +19,17 @@ export const lists = ["gallery_items", "packages", "posts", "home_tiles", "home_
 export const singletons = ["home_page", "contact_form", "site_settings"];
 const imageFields = { gallery_items: "image", home_tiles: "image", home_page: "hero_image", contact_form: "intro_image" };
 const field = (name, type, meta = {}, schema = {}) => ({ field: name, type, meta: { interface: "input", ...meta }, schema });
-const settingsFields = Object.keys(siteDefaults).map((name) => name.endsWith("_links")
+const settingsFields = Object.keys(siteDefaults).filter((name) => !["logo", "logo_alt", "show_footer_logo"].includes(name)).map((name) => name.endsWith("_links")
   ? field(name, "json", { interface: "list", special: ["cast-json"], required: true, note: "Beschriftung, interner Link und Reihenfolge bearbeiten.", options: { fields: [
     { field: "label", name: "Beschriftung", type: "string", meta: { interface: "input", required: true } },
     { field: "href", name: "Linkziel", type: "string", meta: { interface: "input", required: true, note: "Interner Pfad, z. B. /kontakt" } },
   ] } })
   : field(name, "string", { required: true }));
+settingsFields.push(
+  field("logo", "uuid", { interface: "file-image", special: ["file"], note: "Eigenes Logo auswählen oder hochladen. Ohne Datei erscheint das bisherige Logo.", translations: [{ language: "de-DE", translation: "Logo" }] }),
+  field("logo_alt", "string", { note: "Bildbeschreibung; ohne Angabe wird der Markenname verwendet.", translations: [{ language: "de-DE", translation: "Logo-Beschreibung" }] }),
+  field("show_footer_logo", "boolean", { interface: "boolean", special: ["cast-boolean"], translations: [{ language: "de-DE", translation: "Logo auch im Footer anzeigen" }] }, { default_value: false }),
+);
 
 function statusDefinition(singleton) {
   return field("status", "string", {
@@ -62,6 +68,8 @@ export async function applyWebsiteFeatures(request) {
     return matches[0];
   };
   const build = policy("Website Build"), editor = policy("Website Editor");
+  const folders = await request(`/folders?${new URLSearchParams({ "filter[name][_eq]": "Website", fields: "id,name", limit: "2" })}`);
+  if (folders.length !== 1) throw new Error("Der Dateiordner Website fehlt oder ist nicht eindeutig.");
   const collections = new Set((await request("/collections")).map((item) => item.collection));
   for (const name of [...lists, "home_page", "contact_form"]) {
     if (!collections.has(name)) throw new Error(`Zuerst Basismodul einrichten: ${name}`);
@@ -72,7 +80,9 @@ export async function applyWebsiteFeatures(request) {
   for (const name of [...lists, ...singletons]) {
     const existing = new Set((await request(`/fields/${name}`)).map((item) => item.field));
     const definitions = [statusDefinition(singletons.includes(name))];
-    if (name === "site_settings") definitions.push(...settingsFields);
+    if (name === "site_settings") definitions.push(...settingsFields.map((definition) => definition.field === "logo"
+      ? { ...definition, meta: { ...definition.meta, options: { folder: folders[0].id } } }
+      : definition));
     if (imageFields[name]) {
       const prefix = imageFields[name];
       definitions.push(
@@ -95,6 +105,10 @@ export async function applyWebsiteFeatures(request) {
     if (["gallery_items", "packages", "posts", "home_occasions", "legal_sections", "contact_options"].includes(name)) {
       await extendGrant(request, editor, name, "create", additions);
     }
+  }
+  const relations = await request("/relations/site_settings");
+  if (!relations.some((item) => item.field === "logo")) {
+    await request("/relations", "POST", { collection: "site_settings", field: "logo", related_collection: "directus_files", meta: { one_deselect_action: "nullify" }, schema: { on_delete: "SET NULL" } });
   }
   const settings = await request("/items/site_settings?fields=id");
   if (!settings?.id) await request("/items/site_settings", "PATCH", { status: "live", ...siteDefaults });

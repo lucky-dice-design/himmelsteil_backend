@@ -14,12 +14,20 @@ function fixture() {
   const fields = new Map(collections.map((item) => [item.collection, [{ field: "id" }, ...(!singletons.includes(item.collection) ? [{ field: "status" }] : [])]]));
   const items = Object.fromEntries(collections.map((item) => [item.collection, [{ id: 1, status: "published", title: "Existing content" }]]));
   let settings = null;
+  const relations = [];
   const calls = [];
   const request = async (input, method = "GET", body) => {
     calls.push({ input, method, body: structuredClone(body) });
     const url = new URL(input, "http://fixture");
     const [resource, name, key] = url.pathname.split("/").slice(1);
     if (resource === "policies") return structuredClone(policies);
+    if (resource === "folders") return [{ id: "website-folder", name: "Website" }];
+    if (resource === "relations") {
+      if (method === "GET") return structuredClone(relations);
+      assert.equal(method, "POST");
+      relations.push(structuredClone(body));
+      return;
+    }
     if (resource === "collections") {
       if (method === "GET") return structuredClone(collections);
       if (method === "POST") {
@@ -53,13 +61,18 @@ function fixture() {
     }
     throw new Error(`Unexpected request ${input}`);
   };
-  return { request, grants, fields, items, calls, settings: () => settings };
+  return { request, grants, fields, items, calls, relations, settings: () => settings };
 }
 
 test("migrates publication status, adds optional credits and extends only website grants", async () => {
   const state = fixture();
   await applyWebsiteFeatures(state.request);
   assert.equal(state.settings().brand_name, siteDefaults.brand_name);
+  assert.equal(state.fields.get("site_settings").find((item) => item.field === "logo").meta.options.folder, "website-folder");
+  assert.deepEqual(state.relations.map((item) => [item.field, item.related_collection, item.schema.on_delete]), [["logo", "directus_files", "SET NULL"]]);
+  for (const grant of state.grants.filter((item) => item.collection === "site_settings")) {
+    for (const field of ["logo", "logo_alt", "show_footer_logo"]) assert.ok(grant.fields.includes(field));
+  }
   for (const name of lists) assert.equal(state.items[name][0].status, "live");
   for (const name of [...lists, ...singletons]) {
     const status = state.fields.get(name).find((item) => item.field === "status");
@@ -77,10 +90,13 @@ test("migrates publication status, adds optional credits and extends only websit
   assert.ok(!state.grants.some((item) => item.collection === "contact_requests"));
   // A second installation preserves editorial changes and does not duplicate fields/grants.
   state.settings().brand_name = "Editorial change";
+  state.settings().logo = "existing-logo";
   const grantCount = state.grants.length;
   const fieldCounts = [...state.fields].map(([name, value]) => [name, value.length]);
   await applyWebsiteFeatures(state.request);
   assert.equal(state.settings().brand_name, "Editorial change");
+  assert.equal(state.settings().logo, "existing-logo");
+  assert.equal(state.relations.length, 1);
   assert.equal(state.grants.length, grantCount);
   assert.deepEqual([...state.fields].map(([name, value]) => [name, value.length]), fieldCounts);
 });
