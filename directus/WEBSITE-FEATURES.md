@@ -38,6 +38,29 @@ damit kein Inhalt eines vorherigen Builds stehen bleibt.
 
 ## Einmalige Umstellung auf dem VPS
 
+### Frontend-Deployment meldet `site_settings: 403`
+
+Der neue Frontend-Build benötigt die Migration; ein Push führt sie nicht automatisch
+aus. `Preview build started` gefolgt von `Lade live-Inhalte` zeigt zusätzlich einen
+alten installierten Vorschau-Runner an. Zuerst den aktuellen Backend-Branch nach
+`main` übernehmen und dessen erfolgreichen Deployment-Workflow abwarten. Dieser
+stellt die Setup-Dateien bereit und installiert den neuen Preview-Runner.
+
+Anschließend auf dem VPS ausführen:
+
+```bash
+sudo bash /opt/himmelsteil-cms/setup-website-features.sh
+```
+
+Der Befehl sperrt laufende/geplante Builds während der Migration, erstellt mit dem
+bestehenden Verfahren ein Backup, verwendet die bereits im Directus-Container
+vorhandenen Admin-Zugangsdaten und richtet Collections/Felder/Leserechte ein.
+Danach prüft und baut er die geschützte Vorschau. Er aktiviert keinen öffentlichen
+Live-Cronjob. Bei Fehlern abbrechen und die Meldung prüfen; den Frontend-Workflow
+erst nach erfolgreichem Abschluss erneut starten.
+
+### Vollständige Ersteinrichtung
+
 1. Datenbank/Uploads mit dem bestehenden Backup-Verfahren sichern. Den bisherigen
    Vorschau-Cronjob während der Schema- und Quellumstellung vorübergehend aussetzen.
    Das Skript erweitert Feldrechte und den Lesefilter des Build-Kontos um Preview;
