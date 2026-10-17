@@ -131,11 +131,33 @@ Installation und eine passende Policy-Aktualisierung.
 
 Anwendungscode kann weiterhin auf seine Container-/CMS-Daten und dort
 verfügbare Dienstzugänge zugreifen. Diese Prüfung ist keine Sandbox gegen
-bösartigen Anwendungscode und ersetzt keine Produktionsfreigaben. Auch das
-Ergebnis eines containerisierten Frontend-Builds muss vor Veröffentlichung auf
-Links und andere unerwartete Dateitypen geprüft werden. Frontend-Einstiegspunkte
-und der installierte Buildjob müssen vor ihrer Freigabe gesondert umgestellt
-werden.
+bösartigen Anwendungscode und ersetzt keine Produktionsfreigaben.
+
+### Veröffentlichung aus einem gestoppten Container
+
+`verify-publication.py` wird root-eigen als
+`/usr/local/libexec/lucky-verify-publication` installiert. Der vertrauenswürdige
+Host-Buildjob prüft damit nach dem Containerende das gesamte `dist`-Verzeichnis
+und die Live-Zustandsdatei, bevor er Ausgaben als root liest oder veröffentlicht.
+Auch eine bereits gespeicherte Live-Zustandsdatei wird vor der Übergabe an den
+Build geprüft. Der im Checkout enthaltene JavaScript-Prüfer allein ist keine
+Sicherheitsgrenze, weil er selbst aus dem Release stammt.
+
+Die Prüfung lehnt symbolische Links, mehrfach verknüpfte reguläre Dateien,
+Spezialdateien, Setuid-/Setgid-Modi, Dateisystemwechsel, versteckte Metadaten
+(mit Ausnahme des öffentlichen `.well-known`-Verzeichnisses), eine fehlende oder
+leere Startseite sowie zu große oder zu viele Dateien ab. Der private Zustand
+muss eine einzelne, nicht leere reguläre Datei von höchstens 8 MiB sein. Die
+öffentliche Ausgabe wird auf Verzeichnisse mit 0755 und Dateien mit 0644 gesetzt.
+Nach der Prüfung darf kein unvertrauenswürdiger Prozess mehr in das private
+Build-Verzeichnis schreiben; der Docker-Prozess ist beendet und das temporäre
+Host-Verzeichnis ist root-eigen und privat.
+
+Vor den neuen Frontend-Einstiegspunkten zuerst beide Prüfer installieren. Der
+geänderte vertrauenswürdige Buildjob und der zugehörige neue Policy-Hash werden
+gemeinsam unter den vorhandenen Deployment-/Build-Sperren installiert. Bis dahin
+bleibt die bisherige Policy aktiv. Die Installation der Frontend-Einstiegspunkte
+und eine sudo-/SSH-Freigabe sind getrennte, überprüfte Schritte.
 
 ```bash
 python3 -I -m unittest discover -s deploy -p 'test_*.py' -v

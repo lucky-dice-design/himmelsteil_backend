@@ -34,7 +34,7 @@
         "server/directus/setup-website-features.sh": "e0a542d62cc17e5675d4f31d19aecdea03e39ea88fa402599d0fde46b9478841",
         "server/directus/setup-website-features.test.mjs": null,
         "server/preview/README.md": null,
-        "server/preview/build-preview.sh": "39c944abd77042da161dee68edff8838a1a441e7a83818b43ebb57aeeb07dc6b",
+        "server/preview/build-preview.sh": "0cd0464ee86de3048d24e6ff9ccdd140b012252614a40a54a9d5ecf46d757723",
         "server/preview/himmelsteil-live.cron": "0db906c9e2b642c18a24745b49c372fbd6321596726d5010b625971c1eb9c6ae",
         "server/preview/himmelsteil-preview.cron": "3b21aa777c7370464cc21c629ebf39a6e8762ae1c9ac5892497d68fc9f351254",
         "server/preview/himmelsteil-preview.logrotate": "ebdb660233a06cfd860d284b28b125676d252209c14025f2d04277ee51288d9a"
