@@ -96,6 +96,47 @@ umgestellt sein. Ein syntaktisch gültiger Commit-SHA und eine vom Sender
 
 ## Tests und Rückweg
 
+### Root-Prüfung des Release-Archivs
+
+`verify-release.py` wird getrennt root-eigen als
+`/usr/local/libexec/lucky-verify-release` installiert. Die geprüfte Policy liegt
+root-eigen, nicht gruppen-/weltbeschreibbar unter
+`/etc/lucky-deploy/release-policy.json`. Die geänderten Backend-Einstiegspunkte
+rufen diesen Prüfer vor dem Entpacken und vor Änderungen am installierten
+Projekt auf. Fehlen Prüfer oder Policy, bricht das Deployment ab.
+
+Der Prüfer kopiert höchstens 256 MiB aus einer regulären Datei ohne Symlink in
+ein exklusiv neu angelegtes privates Root-Stagingziel. Erst die stabile Kopie
+wird anhand der Policy geprüft. Beschränkt sind Dateianzahl, einzelne Dateien,
+gesamte entpackte Dateigröße, Prozessspeicher und CPU-Zeit. Links, Spezialdateien,
+Setuid-/Setgid-Bits, doppelte Pfade und Pfadtraversal werden abgelehnt. Die
+nachfolgende Entpackung verwendet weiterhin Python `filter='data'`.
+
+Compose, Proxy-, Docker-Start-, Backup-, Cron- und Logrotate-Dateien bleiben
+auf festgelegte Hashes gebunden. Auch zusätzliche Dateien in den tatsächlich
+kopierten Backend-Verzeichnissen bzw. auf der Lucky-Dice-Backend-Wurzelebene
+werden abgelehnt. Das verhindert beispielsweise das Einschleusen einer
+Compose-Override-Datei. Bekannte Anwendungs-/CMS-Module, Schema-/Seed-Inhalte,
+Kontaktdienst-Paketdateien und bestehende Markdown-Dokumente sind gezielt
+veränderbar. Neue Dateien in diesen geprüften Bereichen benötigen eine eigene
+Prüfung der Policy; dies kann auch harmlose Erweiterungen zunächst blockieren.
+
+Die Policy stammt aus den ausdrücklich geprüften Git-Dateiinhalten, nicht aus
+einem eingehenden Release. `build-release-policy.py` erzeugt einen Vorschlag
+aus zwei lokalen Git-Checkouts. Nicht automatisch auf dem Server neu generieren
+und niemals eine Policy aus dem Upload übernehmen. Vor der Installation die
+geschützten Dateihashes gegen den tatsächlich freigegebenen Serverstand prüfen.
+Eine bewusste Infrastrukturänderung braucht eine getrennte, manuell geprüfte
+Installation und eine passende Policy-Aktualisierung.
+
+Anwendungscode kann weiterhin auf seine Container-/CMS-Daten und dort
+verfügbare Dienstzugänge zugreifen. Diese Prüfung ist keine Sandbox gegen
+bösartigen Anwendungscode und ersetzt keine Produktionsfreigaben. Auch das
+Ergebnis eines containerisierten Frontend-Builds muss vor Veröffentlichung auf
+Links und andere unerwartete Dateitypen geprüft werden. Frontend-Einstiegspunkte
+und der installierte Buildjob müssen vor ihrer Freigabe gesondert umgestellt
+werden.
+
 ```bash
 python3 -I -m unittest discover -s deploy -p 'test_*.py' -v
 ```
