@@ -243,6 +243,12 @@ sudo docker compose ps
 
 **Noch nicht live schalten:** Die lokale Website enthält Fallback-Inhalte und Platzhalter für Impressum und Datenschutz. Erst Inhalte, Bilder/Bildrechte und Rechtstexte prüfen. Danach die Produktionsblöcke aus `Caddyfile.production` in Caddy importieren und die Web-DNS-Einträge für `@` und `www` auf den VPS richten. Den bisherigen IONOS-Default-Site-A-Record und den alten AAAA-Record für `@` entfernen beziehungsweise ersetzen, sonst können Aufrufe weiter bei IONOS landen. MX-, SPF- und DKIM-Einträge für E-Mail unverändert lassen.
 
+Die Produktionskonfiguration leitet `himmelsteil.com`, `www.himmelsteil.com`
+und `www.himmelsteil.de` dauerhaft (HTTP 301) auf `https://himmelsteil.de`
+weiter. Pfad und Query-Parameter bleiben erhalten. Auch die `.com`-Domains
+müssen im DNS auf den VPS zeigen, damit Caddy ihre HTTPS-Zertifikate beziehen
+und erneuern kann. Dafür ist keine Directus-Migration erforderlich.
+
 Git sichert nur Quellcode und Konfiguration. PostgreSQL-Daten und Directus-Uploads benötigen weiterhin externe Backups.
 
 Die Variablen `DIRECTUS_ADMIN_EMAIL` und `DIRECTUS_ADMIN_PASSWORD` können nach dem erfolgreichen Bootstrap aus `.env` und `compose.yaml` entfernt werden. Sie werden nur für die initiale Erstellung benötigt.
