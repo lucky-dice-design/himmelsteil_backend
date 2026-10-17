@@ -9,7 +9,12 @@ deren Bearbeitungsstatus werden nicht geändert.
 - **Website → Header & Footer** (`site_settings`): Markenname, zugängliche
   Beschriftungen, Header-Links und Footer-Text/-Links. Links lassen sich über
   einen Repeater beschriften, sortieren und auf interne Pfade wie `/kontakt`
-  setzen. Das bestehende Logo bleibt erhalten. Änderungen gelten auf allen Seiten,
+  setzen. Über **Logo** (`logo`) lässt sich eine eigene Datei aus dem Ordner
+  `Website` auswählen oder hochladen. **Logo-Beschreibung** (`logo_alt`) beschreibt
+  das Bild; ohne Angabe wird der Markenname verwendet. Das Logo wird ohne Beschnitt
+  und mit erhaltenen Proportionen im Header angezeigt. Mit **Logo auch im Footer
+  anzeigen** (`show_footer_logo`) erscheint dieselbe Datei zusätzlich im Footer.
+  Ohne ausgewählte Datei wird das bisherige Symbol verwendet. Änderungen gelten auf allen Seiten,
   einschließlich Blogartikeln; die aktive Navigation wird je Seite gesetzt.
 - **Bild-Copyright**: Hero-Bild der Startseite, Themenkacheln, Galerie und
   Kontaktbild erhalten ein Textfeld und **Bild-Copyright anzeigen**. Der Schalter
@@ -37,6 +42,17 @@ Abschnitte. Nicht sichtbare Rechtstextseiten erhalten einen neutralen Platzhalte
 damit kein Inhalt eines vorherigen Builds stehen bleibt.
 
 ## Einmalige Umstellung auf dem VPS
+
+### Logo-Felder nachrüsten
+
+Zuerst den aktualisierten Backend-Branch nach `main` übernehmen und dessen
+Deployment abwarten. Anschließend auf dem VPS
+`sudo bash /opt/himmelsteil-cms/setup-website-features.sh` erneut ausführen:
+Das wiederholbare Setup ergänzt die drei Logo-Felder, die Datei-Relation und die
+Build-/Editor-Feldrechte; bestehende Einstellungen und Logos bleiben erhalten.
+Danach erst die neue Frontend-Version nach `main` übernehmen/deployen, da sie die
+neuen Felder liest. Logo-Änderungen folgen dem vorhandenen Live-/Preview-Status
+von `site_settings`; die Live-Ausgabe behält bei Preview den letzten Live-Stand.
 
 ### Frontend-Deployment meldet `site_settings: 403`
 
