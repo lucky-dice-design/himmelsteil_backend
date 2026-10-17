@@ -53,8 +53,8 @@ sudo bash /opt/himmelsteil-cms/setup-website-features.sh
 ```
 
 Der Befehl sperrt laufende/geplante Builds während der Migration, erstellt mit dem
-bestehenden Verfahren ein Backup, verwendet die bereits im Directus-Container
-vorhandenen Admin-Zugangsdaten und richtet Collections/Felder/Leserechte ein.
+bestehenden Verfahren ein Backup, fragt im interaktiven Terminal nach dem aktuellen
+Directus-Admin-Zugang (Passwort verdeckt) und richtet Collections/Felder/Leserechte ein.
 Danach prüft und baut er die geschützte Vorschau. Er aktiviert keinen öffentlichen
 Live-Cronjob. Bei Fehlern abbrechen und die Meldung prüfen; den Frontend-Workflow
 erst nach erfolgreichem Abschluss erneut starten.
@@ -75,9 +75,11 @@ erst nach erfolgreichem Abschluss erneut starten.
    Der Host-Runner erwartet Directus unter `http://127.0.0.1:8055`, wie die bisherigen
    Setup-Skripte. Wenn dieser Port nur im Container erreichbar ist, beide Skripte
    `setup-website-features.mjs` und `setup-collection-navigation.mjs` in denselben
-   Containerordner kopieren und dort `node setup-website-features.mjs --env-auth`
-   ausführen. Dieser Modus nutzt die vorhandenen Container-Variablen `ADMIN_EMAIL`
-   und `ADMIN_PASSWORD`; Zugangsdaten werden nicht ausgegeben.
+   Containerordner kopieren und dort mit `docker compose exec directus node …`
+   interaktiv ausführen. Nicht `exec -T` verwenden: Die sichere Passwortabfrage
+   benötigt ein Terminal. Der optionale Modus `--env-auth` nutzt die Container-
+   Variablen `ADMIN_EMAIL` und `ADMIN_PASSWORD`; diese sind Bootstrap-Einstellungen
+   und können nach einer Passwortänderung veraltet sein (HTTP 401).
 
    Das Skript ist wiederholbar: vorhandene Inhalte, Linklisten und Copyright-Texte
    bleiben erhalten. Alte Basisskripte, die Statusrechte auf `published` zurücksetzen,

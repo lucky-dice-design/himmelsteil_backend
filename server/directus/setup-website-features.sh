@@ -7,6 +7,10 @@ if (( EUID != 0 )); then
   echo 'Run: sudo bash /opt/himmelsteil-cms/setup-website-features.sh' >&2
   exit 1
 fi
+if [[ ! -t 0 || ! -t 1 ]]; then
+  echo 'Run in an interactive SSH terminal; the current Directus admin login is required.' >&2
+  exit 1
+fi
 target=/opt/himmelsteil-cms
 runner=/usr/local/sbin/himmelsteil-preview-build
 for file in "$target/.env" "$target/backup.sh" "$target/setup-website-features.mjs" \
@@ -33,8 +37,9 @@ docker compose exec -T directus mkdir -m 0700 "$container_dir"
 trap cleanup EXIT
 docker compose cp setup-website-features.mjs "directus:$container_dir/setup-website-features.mjs"
 docker compose cp setup-collection-navigation.mjs "directus:$container_dir/setup-collection-navigation.mjs"
-# Credentials are already in the container environment; do not copy or print them.
-docker compose exec -T directus node "$container_dir/setup-website-features.mjs" --env-auth
+# ADMIN_PASSWORD is a bootstrap setting and may differ from the current password.
+# Preserve the terminal so the migration can ask for the current login securely.
+docker compose exec directus node "$container_dir/setup-website-features.mjs"
 cleanup
 trap - EXIT
 flock -u 9
