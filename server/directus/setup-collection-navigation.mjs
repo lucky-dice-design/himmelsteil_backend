@@ -3,6 +3,15 @@ import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+export function rateLimitDelay(retryAfter, now = Date.now()) {
+  const value = String(retryAfter || "").trim();
+  const delay = /^\d+(?:\.\d+)?$/.test(value)
+    ? Number(value) * 1000
+    : Date.parse(value) - now;
+  // The server's limiter uses a 60-second window. Leave a small margin at its boundary.
+  return Math.max(60000, Number.isFinite(delay) && delay > 0 ? delay + 1000 : 60000);
+}
+
 // Folder collections organize the Data Studio; schema:null creates no SQL table.
 export const navigationGroups = [
   {
@@ -140,7 +149,10 @@ async function main() {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       if (response.status === 429 && attempt < 4) {
-        await new Promise((done) => setTimeout(done, Math.min(1000 * 2 ** attempt, 8000)));
+        await response.arrayBuffer();
+        const delay = rateLimitDelay(response.headers.get("retry-after"));
+        console.warn(`Directus-Ratenlimit: erneuter Versuch in ${Math.ceil(delay / 1000)} Sekunden.`);
+        await new Promise((done) => setTimeout(done, delay));
         continue;
       }
       // Never include authentication payloads or server response bodies in errors.

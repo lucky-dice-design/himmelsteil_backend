@@ -75,17 +75,30 @@ test -f "$target/.env"
 check_images "$target" "$src/server/directus/compose.yaml"
 tar --exclude=./backups -czf "$snapshot/config.tar.gz" -C "$target" .
 cp -a /etc/lucky-deploy "$snapshot/caddy-management"
+# An already public site must keep its current root until the separate Live build
+# has produced both a checked page and its private singleton state.
+production_config="$work/Caddyfile.production"
+cp "$src/server/directus/Caddyfile.production" "$production_config"
+if [[ -f /etc/lucky-deploy/himmelsteil-production-enabled ]] && \
+   { [[ ! -s /opt/himmelsteil-live-site/index.html ]] || \
+     [[ ! -s /var/lib/himmelsteil-publication/live-singletons.json ]]; }; then
+  test -s "$target/Caddyfile.production"
+  cp "$target/Caddyfile.production" "$production_config"
+  echo 'Initial Live build is not ready; preserving the installed public webroot.'
+fi
 # Validate the whole candidate before replacing any installed files.
 stage="$work/candidate"
 mkdir "$stage"
 rsync -a --exclude='backups/' "$target/" "$stage/"
 rsync -a --exclude='.env' --exclude='secrets/' --exclude='backups/' "$src/server/directus/" "$stage/"
+install -m 0644 "$production_config" "$stage/Caddyfile.production"
 assemble_caddy "$src/server/directus/Caddyfile" > "$stage/Caddyfile"
 docker compose --project-name himmelsteil-cms --project-directory "$stage" config --quiet
 docker compose --project-name himmelsteil-cms --project-directory "$stage" run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 # Run the known installed backup script before replacing backend files.
 (cd "$target" && bash backup.sh)
 rsync -a --chown=root:root --exclude='.env' --exclude='secrets/' --exclude='backups/' "$src/server/directus/" "$target/"
+install -m 0644 "$production_config" "$target/Caddyfile.production"
 install -m 0644 "$src/server/directus/Caddyfile" /etc/lucky-deploy/caddy-himmelsteil.conf
 assemble_caddy > "$target/Caddyfile"
 cd "$target"
