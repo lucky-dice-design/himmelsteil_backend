@@ -6,6 +6,10 @@ import { pathToFileURL } from "node:url";
 // Folder collections organize the Data Studio; schema:null creates no SQL table.
 export const navigationGroups = [
   {
+    collection: "nav_website", label: "Website", icon: "web",
+    children: [["site_settings", "Header & Footer", "web"]],
+  },
+  {
     collection: "nav_home", label: "Startseite", icon: "home",
     children: [
       ["home_page", "Startseiten-Inhalte", "home"],
