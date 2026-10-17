@@ -61,6 +61,25 @@ erst nach erfolgreichem Abschluss erneut starten.
 
 ### Vollständige Ersteinrichtung
 
+Wenn die Hauptdomain nach einer bereits erfolgten Webroot-Umstellung HTTP 404
+liefert, zuerst die Directus-Migration erfolgreich abschließen und anschließend
+den ersten Live-Build ausführen:
+
+```bash
+sudo install -d -m 0755 -o root -g root /opt/himmelsteil-live-site
+sudo /usr/local/sbin/himmelsteil-preview-build --live
+curl -I https://himmelsteil.de/
+```
+
+Scheitert der Live-Build, dessen Fehlermeldung beheben; keine Preview-Dateien in
+das öffentliche Verzeichnis kopieren. Startseite, Kontakt und Header/Footer müssen
+beim ersten Live-Build auf Live stehen. Nach erfolgreicher Ausgabe `live published`
+ist bei einer bereits aktiven `/srv/live-site`-Konfiguration kein Caddy-Neustart nötig.
+Der korrigierte Backend-Deployment-Einstiegspunkt behält bei einer noch ausstehenden
+Ersteinrichtung den installierten Produktions-Webroot bei, bis `index.html` und
+der private Live-Zwischenstand vorhanden sind. Den Einstiegspunkt dafür nach dem
+üblichen Verfahren root-eigen aktualisieren; ein GitHub-Push ersetzt ihn nicht.
+
 Bei HTTP 429 wartet das Setup mindestens eine Minute, berücksichtigt längere
 `Retry-After`-Angaben und meldet die Pause im Terminal. Die Directus-Ratenbegrenzung
 bleibt aktiv. Nach einem abgebrochenen Lauf kann dasselbe Setup erneut ausgeführt
