@@ -30,6 +30,8 @@ jobs:
       - name: Check deployment script
         run: |
           for file in deploy/*.sh; do bash -n "$file"; done
+      - name: Test restricted deployment SSH protocol
+        run: python3 -I -m unittest discover -s deploy -p 'test_*.py' -v
 
   deploy:
     needs: check
