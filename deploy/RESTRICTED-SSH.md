@@ -80,6 +80,15 @@ Der spätere Workflow sendet das erzeugte Archiv direkt über SSH-stdin; Länge
 und Digest werden vorab lokal berechnet. Im Windows-Terminal keine Binärarchive
 über eine textverarbeitende PowerShell-Pipeline schicken.
 
+Die vorbereiteten Workflows verwenden ausschließlich das separate Production-
+Secret `VPS_DEPLOY_SSH_KEY` und verlangen `VPS_USER=github-deploy`. Das bisherige
+Secret `VPS_SSH_KEY` wird nicht als Rückfall verwendet. `VPS_KNOWN_HOSTS`,
+`VPS_HOST` und optional `VPS_PORT` bleiben erforderlich. Erst nach gemeinsam
+abgestimmter Server-/GitHub-Konfiguration in den Produktionsbranch übernehmen:
+Uploadpfad, geprüfte sudo-Regeln und manuelle Repository-Freigabe fehlen sonst.
+Der Workflow prüft zuerst die Protokollversion, streamt das Archiv mit Länge
+und SHA-256 und fordert nur bei erfolgreichem Upload das Deployment an.
+
 `deploy` ist zunächst deaktiviert. Nach Abschluss der privilegierten Prüfung
 kann ein Administrator einzelne Repository-Namen zeilenweise in der root-eigenen,
 nicht gruppen-/weltbeschreibbaren regulären Datei
