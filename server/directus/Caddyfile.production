@@ -25,6 +25,6 @@ himmelsteil.de {
   }
 }
 
-www.himmelsteil.de {
+www.himmelsteil.de, himmelsteil.com, www.himmelsteil.com {
   redir https://himmelsteil.de{uri} permanent
 }
