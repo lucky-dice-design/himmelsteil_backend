@@ -85,8 +85,8 @@ const collections = [
           { text: "Kollektion", value: "kollektion" },
         ] },
       }),
-      field("title", "string", { required: true }),
-      field("description", "text", { required: true }),
+      field("title", "string", { required: false, note: "Optionaler Titel unter dem Bild." }),
+      field("description", "text", { required: false, note: "Optionale Beschreibung unter dem Bild." }),
       field("image", "uuid", { interface: "file-image", special: ["file"] }),
       field("image_alt", "string", { note: "Bildbeschreibung für Screenreader; bei Bild erforderlich." }),
       field("swatch_class", "string", {

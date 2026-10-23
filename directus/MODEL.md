@@ -1,5 +1,13 @@
 # Directus-Datenmodell
 
+Die aktuelle Seiten-Erweiterung ergänzt `gallery_page`, `packages_page` und
+`blog_page` als Singletons mit Live-/Preview-Status für die jeweiligen Seitenköpfe,
+Bilder, SEO-Daten und Abschnittstexte. Galerie-Filter liegen in
+`gallery_page.gallery_filters`; `site_settings.gallery_filters` bleibt nur als
+ausgeblendetes Legacy-Feld bestehen. Titel und Beschreibung in `gallery_items`
+sind optional. Einrichtung und Migrationsreihenfolge siehe
+[WEBSITE-FEATURES.md](WEBSITE-FEATURES.md).
+
 > Erweiterung Oktober 2026: Nach `setup-website-features.mjs` gelten
 > `draft`, `preview` und `live` sowie zusätzliche Statusfelder an Singletons.
 > Die folgenden älteren Beschreibungen von `published` und statuslosen Singletons
@@ -45,8 +53,8 @@ Der `Website Build`-Benutzer liest die Startseite und nur veroeffentlichte Kache
 | `status` | String | Status-Interface, Standard `draft` |
 | `sort` | Integer | Sortierfeld |
 | `category` | String | Auswahl: `hochzeit`, `event`, `kollektion` |
-| `title` | String | Pflichtfeld |
-| `description` | Text | Pflichtfeld |
+| `title` | String | Optionaler Titel unter dem Motiv |
+| `description` | Text | Optionale Beschreibung unter dem Motiv |
 | `image` | File | Optionales Bild aus Directus Files |
 | `image_alt` | String | Pflicht, sobald ein Bild gesetzt ist |
 | `swatch_class` | String | Optional: `botanical`, `dark`, `clay`; nur ohne Bild |
