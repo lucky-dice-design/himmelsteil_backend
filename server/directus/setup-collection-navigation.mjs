@@ -27,10 +27,23 @@ export const navigationGroups = [
     ],
   },
   {
-    collection: "nav_content", label: "Papeterie & Blog", icon: "palette",
+    collection: "nav_content", label: "Galerie", icon: "photo_library",
     children: [
-      ["gallery_items", "Galerie", "photo_library"],
+      ["gallery_page", "Galerie-Seite", "web"],
+      ["gallery_items", "Galeriearbeiten", "photo_library"],
+    ],
+  },
+  {
+    collection: "nav_packages", label: "Pakete", icon: "inventory_2",
+    children: [
+      ["packages_page", "Pakete-Seite", "web"],
       ["packages", "Papeterie-Pakete", "inventory_2"],
+    ],
+  },
+  {
+    collection: "nav_blog", label: "Blog", icon: "article",
+    children: [
+      ["blog_page", "Blog-Seite & Artikelbeschriftungen", "web"],
       ["posts", "Blogartikel", "article"],
     ],
   },

@@ -21,7 +21,7 @@ deren Bearbeitungsstatus werden nicht geändert.
   startet ausgeschaltet. Nur mit eingeschaltetem Schalter, einem vorhandenen Bild
   und ausgefülltem Text erscheint direkt unter dem Bild
   `<figcaption><small><i>…</i></small></figcaption>`. HTML im Text wird escaped.
-- **Galerie-Filter** (`site_settings.gallery_filters`): Repeater mit Kategorie,
+- **Galerie → Galerie-Seite → Galerie-Filter** (`gallery_page.gallery_filters`): Repeater mit Kategorie,
   Beschriftung und **Filter anzeigen**. Reihenfolge durch Umsortieren ändern;
   einzelne Buttons durch Ausschalten deaktivieren. Kategorien: Alle (`all`),
   Hochzeit (`hochzeit`), Event (`event`), Kollektion (`kollektion`). Jede Kategorie
@@ -30,7 +30,24 @@ deren Bearbeitungsstatus werden nicht geändert.
   Eine leere Liste oder ausschließlich deaktivierte Einträge blendet die Leiste
   aus. Ohne Alle-Button beginnt die Galerie weiterhin mit allen Arbeiten und ohne
   aktiven Button. Das Deaktivieren eines Buttons blendet keine Galeriearbeit aus.
-  Die Filter folgen dem Live-/Preview-Status der Website-Einstellungen.
+  Die Filter folgen dem Live-/Preview-Status der Galerie-Seite.
+
+- **Galerie → Galerie-Seite**, **Pakete → Pakete-Seite**, **Blog → Blog-Seite &
+  Artikelbeschriftungen** (`gallery_page`, `packages_page`, `blog_page`): eigene
+  Singletons für SEO-Titel/-Beschreibung, Seitenüberschrift, Einleitung, Bild mit
+  Bildbeschreibung/Bildnachweis und Abschnittsüberschriften/-texte. Das
+  Einleitungsbild lässt sich ausschalten. Ohne eigenes Bild bleibt das bisherige
+  Motiv sichtbar. Bei Paketen ist auch der Zusatzabschnitt mit Text und Button
+  bearbeitbar und abschaltbar. Im Blog sind Artikel-Linktext, Brotkrümel,
+  Autor-Einleitung, Lesezeit-Einheit und Artikel-Buttons bearbeitbar.
+- **Galerie → Galeriearbeiten**: Titel und Beschreibung sind optional. Ohne beide
+  Texte wird nur das Motiv dargestellt; die Bildbeschreibung ist unabhängig davon.
+- **Website → Website-Einstellungen**: zusätzlich Menü öffnen/schließen,
+  Betreibername, Betriebsbeschreibung und strukturierte Adressdaten sowie die
+  gemeinsamen Rechtstext-/Paket-Beschriftungen. Die Angaben aktualisieren auch
+  Social-Metadaten und strukturierte Suchmaschinendaten. Kontakt-E-Mail stammt
+  weiterhin aus dem Kontaktformular. Dort sind auch Datenschutzhinweis, Linktext
+  und der Hinweis ohne JavaScript bearbeitbar.
 - **Veröffentlichung**: `Preview` erscheint ausschließlich in der geschützten
   Vorschau; `Live` erscheint in Vorschau und öffentlicher Ausgabe. Listen haben
   weiterhin `Entwurf`, der in beiden Ausgaben unsichtbar bleibt. Bestehende
@@ -52,6 +69,36 @@ Abschnitte. Nicht sichtbare Rechtstextseiten erhalten einen neutralen Platzhalte
 damit kein Inhalt eines vorherigen Builds stehen bleibt.
 
 ## Einmalige Umstellung auf dem VPS
+
+### Alle Seiteninhalte und neue Galerie-Zuordnung
+
+Zuerst diesen Backend-Branch deployen, anschließend das bestehende Setup ausführen:
+
+```bash
+sudo bash /opt/himmelsteil-cms/setup-website-features.sh
+```
+
+Es erstellt die drei Seiten-Collections und ihre Bildrelationen, ergänzt die
+gezielten Build-/Editor-Rechte und ordnet die Inhalte unter Galerie, Pakete und Blog
+ein. Die vorhandene Gruppe `nav_content` wird dabei zu Galerie; Arbeiten bleiben
+in `gallery_items`. Vorhandene Filter werden einmalig auf `gallery_page` übernommen,
+einschließlich eigener Beschriftungen und ausgeschalteter oder leerer Listen.
+Das alte Feld in `site_settings` bleibt für ältere Frontends erhalten, wird aber
+im Editor ausgeblendet. Weitere Setup-Läufe überschreiben keine bearbeiteten
+Seiteninhalte oder Filter. Neue Seiten beginnen mit den bisherigen Website-Texten.
+Preview-Filter behalten beim Umzug ihren Status Preview; vor dem ersten Live-Build
+dieser neuen Collection muss eine geprüfte Live-Fassung freigegeben werden.
+
+Danach erst das Frontend deployen. Alle drei Seiten benötigen einmal einen
+erfolgreichen Live-Build, bevor deren nächste Preview-Fassung den letzten Live-Stand
+bewahren kann. Die privaten Live-Zwischenstände werden um die neuen Singletons
+ergänzt. Für diese Änderung werden keine geschützten Shell-, Cron- oder
+Caddy-Dateien geändert; die bestehende Release-Policy erlaubt die geänderten
+CMS-Module bereits. Die Einrichtung ändert keine Live-Zeitpläne auf dem VPS.
+
+Prüfen: Jede Seitenüberschrift und SEO-Beschreibung ändern, Bild austauschen und
+ausblenden, Paket-Zusatzabschnitt ausblenden, Filter unter Galerie bearbeiten,
+Arbeit ohne Titel/Beschreibung anlegen. Preview darf keine Live-Texte ersetzen.
 
 ### Galerie-Filter nachrüsten
 

@@ -6,8 +6,11 @@ Felder, Beziehungen und Berechtigungen bleiben erhalten.
 
 | Gruppe (Icon) | Collections mit Anzeigenamen (Icon) |
 | --- | --- |
+| Website (`web`) | `site_settings`: Website-Einstellungen (`web`), gemeinsamer Header/Footer und Betriebsdaten |
 | Startseite (`home`) | `home_page`: Startseiten-Inhalte (`home`); `home_tiles`: Themenkacheln (`dashboard`); `home_occasions`: Anlässe (`celebration`) |
-| Papeterie & Blog (`palette`) | `gallery_items`: Galerie (`photo_library`); `packages`: Papeterie-Pakete (`inventory_2`); `posts`: Blogartikel (`article`) |
+| Galerie (`photo_library`) | `gallery_page`: Galerie-Seite (`web`), einschließlich Galerie-Filter; `gallery_items`: Galeriearbeiten (`photo_library`) |
+| Pakete (`inventory_2`) | `packages_page`: Pakete-Seite (`web`); `packages`: Papeterie-Pakete (`inventory_2`) |
+| Blog (`article`) | `blog_page`: Blog-Seite & Artikelbeschriftungen (`web`); `posts`: Blogartikel (`article`) |
 | Kontakt & Anfragen (`contact_mail`) | `contact_requests`: Eingegangene Anfragen (`inbox`); `contact_form`: Kontaktformular (`contact_mail`); `contact_options`: Anlass-Auswahl (`list_alt`) |
 | Rechtliches (`gavel`) | `legal_pages`: Impressum & Datenschutz (`policy`); `legal_sections`: Rechtstext-Abschnitte (`segment`) |
 
