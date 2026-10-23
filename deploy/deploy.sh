@@ -117,6 +117,10 @@ test -f /etc/himmelsteil-preview.env
 test -d /opt/himmelsteil-preview-src
 install -m 0750 "$src/server/preview/build-preview.sh" /usr/local/sbin/himmelsteil-preview-build
 install -m 0644 "$src/server/preview/himmelsteil-preview.cron" /etc/cron.d/himmelsteil-preview
+if [[ -s /opt/himmelsteil-live-site/index.html && \
+      -s /var/lib/himmelsteil-publication/live-singletons.json ]]; then
+  install -m 0644 "$src/server/preview/himmelsteil-live.cron" /etc/cron.d/himmelsteil-live
+fi
 install -m 0644 "$src/server/preview/himmelsteil-preview.logrotate" /etc/logrotate.d/himmelsteil-preview
 install -m 0750 "$src/server/directus/backup.sh" "$target/backup.sh"
 # Test the shared proxy and both CMS backends, including TLS and host routing.

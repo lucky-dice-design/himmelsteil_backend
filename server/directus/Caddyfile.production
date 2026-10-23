@@ -20,6 +20,8 @@ himmelsteil.de {
     handle_path /api/* {
       reverse_proxy contact:3000
     }
+    # Revalidate HTML and assets when revisiting after a CMS publication.
+    header Cache-Control "no-cache, max-age=0, must-revalidate"
     try_files {path}.html {path}
     file_server
   }

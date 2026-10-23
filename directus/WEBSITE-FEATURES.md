@@ -154,9 +154,9 @@ werden; vorhandene Inhalte werden nicht neu angelegt oder überschrieben.
    mit Passwortschutz und `noindex` bleibt auf `/srv/site`. Den vorhandenen Import
    der Produktionskonfiguration nur bei bereits freigegebener Hauptdomain aktivieren.
 6. Nach Kontrolle beide Crondateien installieren bzw. den Preview-Cronjob wieder
-   aktivieren. `himmelsteil-preview.cron` baut Preview alle fünf Minuten;
-   `himmelsteil-live.cron` baut Live eine Minute versetzt. Beide teilen sich dieselbe
-   Sperre. Die neue Live-Crondatei erst nach dem erfolgreichen initialen Live-Build
+   aktivieren. `himmelsteil-live.cron` startet Live jede Minute;
+   `himmelsteil-preview.cron` startet Preview 30 Sekunden versetzt. Beide teilen sich
+   dieselbe Sperre und warten bei Belegung bis zu 120 Sekunden. Die neue Live-Crondatei erst nach dem erfolgreichen initialen Live-Build
    installieren. Die bestehende Logrotation deckt beide Ausgaben ab.
 
    ```bash
