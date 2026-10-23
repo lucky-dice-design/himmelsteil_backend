@@ -37,6 +37,7 @@ preview.himmelsteil.de {
     handle_path /api/* {
       reverse_proxy contact:3000
     }
+    header Cache-Control "no-store"
     try_files {path}.html {path}
     file_server
   }

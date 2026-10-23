@@ -22,9 +22,9 @@ if (( EUID != 0 )); then
 fi
 
 exec 9>"$lock_file"
-if ! flock -n 9; then
-  echo 'Another preview build is running.'
-  exit 0
+if ! flock -w 120 9; then
+  echo 'Publication lock timed out; no build was published.' >&2
+  exit 1
 fi
 
 for file in "$source_dir/package.json" "$source_dir/scripts/build-directus-site.mjs" \

@@ -138,6 +138,15 @@ geschützten Dateihashes gegen den tatsächlich freigegebenen Serverstand prüfe
 Eine bewusste Infrastrukturänderung braucht eine getrennte, manuell geprüfte
 Installation und eine passende Policy-Aktualisierung.
 
+Die CMS-Aktualisierung im Minutentakt verändert beide Caddy-Konfigurationen,
+den Preview-/Live-Buildjob und beide Crondateien. Die zugehörigen fünf Hashes
+in `release-policy.json` entsprechen dem zusammengeführten Quellstand. Vor
+dessen Backend-Deployment müssen diese Infrastrukturänderungen und die passende
+Policy auf dem VPS gemeinsam nach dem bestehenden Prüfverfahren installiert
+werden. Ein GitHub-Push aktualisiert die root-eigene Policy nicht automatisch.
+Die Host-Prüfungen für Release, Veröffentlichung und Live-Zwischenstand bleiben
+Bestandteil des Build- und Deployment-Verfahrens.
+
 Anwendungscode kann weiterhin auf seine Container-/CMS-Daten und dort
 verfügbare Dienstzugänge zugreifen. Diese Prüfung ist keine Sandbox gegen
 bösartigen Anwendungscode und ersetzt keine Produktionsfreigaben.
