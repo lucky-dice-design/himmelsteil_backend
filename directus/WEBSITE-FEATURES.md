@@ -1,4 +1,4 @@
-# Header/Footer, Bildnachweise und Live/Preview
+# Website-Einstellungen, Galerie-Filter, Bildnachweise und Live/Preview
 
 Diese Erweiterung wird nach allen Basismodulen eingerichtet. Sie benötigt die
 bestehenden Policies `Website Build` und `Website Editor`. Kontaktanfragen und
@@ -6,7 +6,7 @@ deren Bearbeitungsstatus werden nicht geändert.
 
 ## Redaktion
 
-- **Website → Header & Footer** (`site_settings`): Markenname, zugängliche
+- **Website → Website-Einstellungen** (`site_settings`): Markenname, zugängliche
   Beschriftungen, Header-Links und Footer-Text/-Links. Links lassen sich über
   einen Repeater beschriften, sortieren und auf interne Pfade wie `/kontakt`
   setzen. Über **Logo** (`logo`) lässt sich eine eigene Datei aus dem Ordner
@@ -21,6 +21,16 @@ deren Bearbeitungsstatus werden nicht geändert.
   startet ausgeschaltet. Nur mit eingeschaltetem Schalter, einem vorhandenen Bild
   und ausgefülltem Text erscheint direkt unter dem Bild
   `<figcaption><small><i>…</i></small></figcaption>`. HTML im Text wird escaped.
+- **Galerie-Filter** (`site_settings.gallery_filters`): Repeater mit Kategorie,
+  Beschriftung und **Filter anzeigen**. Reihenfolge durch Umsortieren ändern;
+  einzelne Buttons durch Ausschalten deaktivieren. Kategorien: Alle (`all`),
+  Hochzeit (`hochzeit`), Event (`event`), Kollektion (`kollektion`). Jede Kategorie
+  darf höchstens einmal vorkommen. Die Beschriftung ist frei bearbeitbar;
+  Kategoriekennungen müssen zu den bestehenden Galeriearbeiten passen.
+  Eine leere Liste oder ausschließlich deaktivierte Einträge blendet die Leiste
+  aus. Ohne Alle-Button beginnt die Galerie weiterhin mit allen Arbeiten und ohne
+  aktiven Button. Das Deaktivieren eines Buttons blendet keine Galeriearbeit aus.
+  Die Filter folgen dem Live-/Preview-Status der Website-Einstellungen.
 - **Veröffentlichung**: `Preview` erscheint ausschließlich in der geschützten
   Vorschau; `Live` erscheint in Vorschau und öffentlicher Ausgabe. Listen haben
   weiterhin `Entwurf`, der in beiden Ausgaben unsichtbar bleibt. Bestehende
@@ -42,6 +52,26 @@ Abschnitte. Nicht sichtbare Rechtstextseiten erhalten einen neutralen Platzhalte
 damit kein Inhalt eines vorherigen Builds stehen bleibt.
 
 ## Einmalige Umstellung auf dem VPS
+
+### Galerie-Filter nachrüsten
+
+Zuerst das Backend deployen und anschließend auf dem VPS ausführen:
+
+```bash
+sudo bash /opt/himmelsteil-cms/setup-website-features.sh
+```
+
+Das wiederholbare Setup ergänzt das JSON-Feld, Editor-/Build-Rechte und die
+Navigation **Website → Website-Einstellungen**. Bestehende Installationen erhalten
+einmalig die bisherigen vier aktiven Filter; eigene Konfigurationen und bewusst
+geleerte Listen werden bei weiteren Läufen beibehalten. Andere Website-Inhalte
+bleiben erhalten. Danach das neue Frontend deployen. Alte private Live-Zwischenstände
+ohne Filterfeld verwenden bis zum nächsten Live-Stand die bisherigen vier Filter.
+
+Prüfen: Beschriftung ändern, Reihenfolge tauschen, einen Filter deaktivieren und
+alle deaktivieren. In der jeweiligen Ausgabe dürfen nur die gewünschten Buttons
+erscheinen; Arbeiten deaktivierter Kategorien bleiben in der Gesamtansicht sichtbar.
+Preview-Änderungen dürfen die Live-Filter erst nach Freigabe ersetzen.
 
 ### Logo-Felder nachrüsten
 

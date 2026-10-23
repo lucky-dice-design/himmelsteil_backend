@@ -16,7 +16,7 @@ export function rateLimitDelay(retryAfter, now = Date.now()) {
 export const navigationGroups = [
   {
     collection: "nav_website", label: "Website", icon: "web",
-    children: [["site_settings", "Header & Footer", "web"]],
+    children: [["site_settings", "Website-Einstellungen", "web"]],
   },
   {
     collection: "nav_home", label: "Startseite", icon: "home",

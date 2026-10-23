@@ -51,7 +51,7 @@ function fixture() {
     if (resource === "items") {
       if (name === "site_settings") {
         if (method === "GET") return settings;
-        settings = { id: 1, ...structuredClone(body) };
+        settings = { id: 1, ...settings, ...structuredClone(body) };
         return;
       }
       assert.equal(method, "PATCH");
@@ -71,7 +71,7 @@ test("migrates publication status, adds optional credits and extends only websit
   assert.equal(state.fields.get("site_settings").find((item) => item.field === "logo").meta.options.folder, "website-folder");
   assert.deepEqual(state.relations.map((item) => [item.field, item.related_collection, item.schema.on_delete]), [["logo", "directus_files", "SET NULL"]]);
   for (const grant of state.grants.filter((item) => item.collection === "site_settings")) {
-    for (const field of ["logo", "logo_alt", "show_footer_logo"]) assert.ok(grant.fields.includes(field));
+    for (const field of ["logo", "logo_alt", "show_footer_logo", "gallery_filters"]) assert.ok(grant.fields.includes(field));
   }
   for (const name of lists) assert.equal(state.items[name][0].status, "live");
   for (const name of [...lists, ...singletons]) {
@@ -106,4 +106,20 @@ test("rejects an unexpected admin policy before any schema writes", async () => 
   const request = async (...args) => args[0].startsWith("/policies") ? [{ name: "Website Build", admin_access: true }] : state.request(...args);
   await assert.rejects(applyWebsiteFeatures(request), /unerwartete Rechte/);
   assert.equal(state.calls.length, 0);
+});
+
+test("adds gallery filter defaults to an existing site without overwriting settings or disabled filters", async () => {
+  const state = fixture();
+  await applyWebsiteFeatures(state.request);
+  state.settings().brand_name = "Bestehende Marke";
+  delete state.settings().gallery_filters;
+  await applyWebsiteFeatures(state.request);
+  assert.equal(state.settings().brand_name, "Bestehende Marke");
+  assert.deepEqual(state.settings().gallery_filters, siteDefaults.gallery_filters);
+  state.settings().gallery_filters = [{ category: "event", label: "Feiern", enabled: false }];
+  await applyWebsiteFeatures(state.request);
+  assert.deepEqual(state.settings().gallery_filters, [{ category: "event", label: "Feiern", enabled: false }]);
+  state.settings().gallery_filters = [];
+  await applyWebsiteFeatures(state.request);
+  assert.deepEqual(state.settings().gallery_filters, []);
 });
