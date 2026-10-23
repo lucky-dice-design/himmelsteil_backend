@@ -1,0 +1,108 @@
+{
+  "repositories": {
+    "himmelsteil_backend": {
+      "files": {
+        "server/directus/.env.example": "aea44eb20315e9cb9d4de6ac4b12dcdd06db540ec15abddc250dcc66e53d041c",
+        "server/directus/00-himmelsteil-ssh.conf": "e25a1fee9a9a3a432b797b9522181dd6d6df1116261752691579c457a6262901",
+        "server/directus/Caddyfile": "bd9d22919f65f5a79c7ccbd9d14196ab4630f8c2d551bb4617660ff835b5b68e",
+        "server/directus/Caddyfile.production": "c8a2fc5241a40b6ab6f3234031e9fee9845a941bcf03e99a130df250e0ef6b4f",
+        "server/directus/README.md": null,
+        "server/directus/backup.sh": "c59402077d52ef88859b9a01df6b38cfed54ff0d1bdbe33e4097fe5d8699570d",
+        "server/directus/compose.yaml": "07a5d268b43d84e251b876e9c879d1665d121eca05c44ccbce17c6745abcb149",
+        "server/directus/contact-service/.dockerignore": "b8f12afc6732ce721ef28b8d6270bb835b4b1e1db53c64550949a044c74d9159",
+        "server/directus/contact-service/Dockerfile": "b382c1ebeb191e32795a4eb503463966bfe1e7564aff0256e097b380b8389074",
+        "server/directus/contact-service/entrypoint.sh": "6562fe7ae8bfe1ed3fb82277f9b60423e468b2e8feaee9bb50470fd121f1a613",
+        "server/directus/contact-service/package-lock.json": null,
+        "server/directus/contact-service/package.json": null,
+        "server/directus/contact-service/server.mjs": null,
+        "server/directus/contact-service/server.test.mjs": null,
+        "server/directus/fix-build-status-access.mjs": null,
+        "server/directus/fix-image-upload-folders.mjs": null,
+        "server/directus/himmelsteil-backup.service": "26b61bfb00cef3aafcd46820eb56054d3effd610f530f8fe74ac635b12432f51",
+        "server/directus/himmelsteil-backup.timer": "375ca278eb2f213c52f0523dc0b6e1f1a056205fed32203a3ea217bf05b49b2b",
+        "server/directus/latest-backup.sh": "5458aa54560482c24286c28b3de954fd0480da2a5f0252dbbc9dd72c27cc55a8",
+        "server/directus/setup-build-access.mjs": null,
+        "server/directus/setup-collection-navigation.mjs": null,
+        "server/directus/setup-collection-navigation.test.mjs": null,
+        "server/directus/setup-contact-cms.mjs": null,
+        "server/directus/setup-editor-access.mjs": null,
+        "server/directus/setup-env.sh": "70f1dafd1d2202c96af26682719ae06cb3700a803cc26eb839dae17b5ea0232d",
+        "server/directus/setup-homepage.mjs": null,
+        "server/directus/setup-legal-pages.mjs": null,
+        "server/directus/setup-schema.mjs": null,
+        "server/directus/setup-website-features.mjs": null,
+        "server/directus/setup-website-features.sh": "e0a542d62cc17e5675d4f31d19aecdea03e39ea88fa402599d0fde46b9478841",
+        "server/directus/setup-website-features.test.mjs": null,
+        "server/preview/README.md": null,
+        "server/preview/build-preview.sh": "c680195593d83f3ba8d9909a4ea9993efd4a1b26b26cd9783c8010cdacd3dcc4",
+        "server/preview/himmelsteil-live.cron": "1bbfd41a9895db4afefe51b39b5a6d5b229f2f9b66fb4a6f34d207746bba170a",
+        "server/preview/himmelsteil-preview.cron": "87d8f1cec84fb19fc24f10de7907b2ec6a0464196827068e1044312c649e3b45",
+        "server/preview/himmelsteil-preview.logrotate": "ebdb660233a06cfd860d284b28b125676d252209c14025f2d04277ee51288d9a"
+      },
+      "required": [
+        "server/directus/contact-service/server.mjs",
+        "server/directus/contact-service/package.json",
+        "server/directus/contact-service/package-lock.json"
+      ],
+      "scopes": [
+        "server/directus/",
+        "server/preview/"
+      ]
+    },
+    "himmelsteil_frontend": {
+      "files": {},
+      "required": [
+        "dist/index.html",
+        "package.json",
+        "content/cms-fallback.json",
+        "scripts/build-directus-site.mjs",
+        "scripts/check-site.mjs"
+      ],
+      "scopes": []
+    },
+    "luckydice-backend": {
+      "files": {
+        ".env.example": "ce486dabb293e0c363c34d9353cc2c6e8833d7d8ac9a21dfbcc43fcd3d75f2e3",
+        ".gitattributes": "53f59b6d30df507e5feeb0f8347d7cc8ec51ebb776e27ea765ea04bc328952f9",
+        ".gitignore": "cdbf4f2eb5a0a5ca482f380baa44d38efeea725646537ac94d5c242c5e36814e",
+        "COLLECTIONS.md": null,
+        "Caddyfile.luckydice": "42343804a4f31e65c8854147a672cbd915c4ac18b77ae541aa8383f6b814449e",
+        "README.md": null,
+        "compose.yaml": "e5dd42b730c82da01a7b0d8f228d5f04d602679763ca0c7c1d85cd490e0031eb",
+        "install-sync.sh": "dde81de76a8cbd70dbe8d871b93ad12712f599d60bfac2e546ebdca2c1056a13",
+        "install.sh": "738b5b5b41517603db030de582f1a0e06b72408d1246ff78ad6c31f2d8e7efd7",
+        "luckydice-content.cron": "0d12dc47bd15b18e929e1f1eb1dde322cccb4e0b03fecaac90b4e718d17c4e9b",
+        "luckydice-content.logrotate": "06817aa23a7cdf6b9ca418311df7aa8da8542ad396c502610a5460e205d09390",
+        "schema.json": null,
+        "seed.json": null,
+        "server.mjs": null,
+        "server.test.mjs": null,
+        "setup-collection-navigation.mjs": null,
+        "setup-collection-navigation.test.mjs": null,
+        "setup.mjs": null,
+        "sync-content.mjs": null,
+        "sync-content.sh": "6562b0e9f3556058250fd9dff2e06a2cbb4558a7af73351d313235ece5a7802d"
+      },
+      "required": [
+        "setup.mjs",
+        "setup-collection-navigation.mjs",
+        "server.mjs",
+        "schema.json",
+        "seed.json",
+        "sync-content.mjs"
+      ],
+      "scopes": [
+        ""
+      ]
+    },
+    "luckydice-frontend": {
+      "files": {},
+      "required": [
+        "dist/index.html",
+        "dist/assets/content.js"
+      ],
+      "scopes": []
+    }
+  },
+  "version": 1
+}

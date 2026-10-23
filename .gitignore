@@ -8,3 +8,4 @@ server/directus/backups/
 *.tar.gz
 node_modules/
 .openai/
+__pycache__/

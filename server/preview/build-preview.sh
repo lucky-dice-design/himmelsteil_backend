@@ -50,7 +50,8 @@ cp -a "$source_dir/." "$work_dir/"
 # This private state preserves the last live singleton while its next revision is Preview.
 # Never copy a source checkout's local cache or put the state in the public directory.
 rm -f -- "$work_dir/.cms-live-state.json"
-if [[ $channel == live && -f $state_dir/live-singletons.json ]]; then
+if [[ $channel == live && ( -e $state_dir/live-singletons.json || -L $state_dir/live-singletons.json ) ]]; then
+  /usr/local/libexec/lucky-verify-publication --state "$state_dir/live-singletons.json"
   cp "$state_dir/live-singletons.json" "$work_dir/.cms-live-state.json"
 fi
 
@@ -66,13 +67,20 @@ docker run --rm --pull=never --cap-drop=ALL --security-opt=no-new-privileges \
     node scripts/check-site.mjs
   '
 
+# The container has stopped. Validate on the host before following any output
+# path as root; the checkout's own checker is application code, not a boundary.
+/usr/local/libexec/lucky-verify-publication --tree "$work_dir/dist"
+if [[ $channel == live ]]; then
+  /usr/local/libexec/lucky-verify-publication --state "$work_dir/.cms-live-state.json"
+fi
+
 if [[ $dry_run == true ]]; then
   rsync -ani --delete --no-owner --no-group "$work_dir/dist/" "$site_dir/"
   echo 'Dry run complete; nothing published.'
   exit 0
 fi
 
-rsync -a --checksum --delay-updates --delete-delay --no-owner --no-group \
+rsync -a --checksum --delay-updates --delete-delay --no-owner --no-group --chmod=D755,F644 \
   "$work_dir/dist/" "$site_dir/"
 if [[ $channel == live ]]; then
   install -d -m 0700 -o root -g root "$state_dir"
